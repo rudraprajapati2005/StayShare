@@ -1,14 +1,11 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
+using StayShare.Data;
+using StayShare.Repositories; 
 namespace StayShare
 {
     public class Startup
@@ -23,7 +20,25 @@ namespace StayShare
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            // Add MVC support
             services.AddControllersWithViews();
+
+            // Add EF Core DbContext
+            services.AddDbContext<AppDbContext>(options =>
+                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+
+            // Register repositories
+            services.AddScoped<IRoomRepository, RoomRepository>();
+            services.AddScoped<IPropertyRepository, PropertyRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
+            services.AddScoped<IOccupancyRepository, OccupancyRepository>();
+
+            // Register Unit of Work
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
+ 
+            // Optional: add session or caching if required later
+            // services.AddDistributedMemoryCache();
+            // services.AddSession();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -36,14 +51,16 @@ namespace StayShare
             else
             {
                 app.UseExceptionHandler("/Home/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
                 app.UseHsts();
             }
+
             app.UseHttpsRedirection();
             app.UseStaticFiles();
 
             app.UseRouting();
 
+            // Optional: if you add authentication/authorization later
+            // app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

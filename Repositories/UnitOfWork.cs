@@ -1,0 +1,40 @@
+﻿using System;
+using System.Threading.Tasks;
+using StayShare.Data;
+
+namespace StayShare.Repositories
+{
+    public class UnitOfWork : IUnitOfWork, IDisposable
+    {
+        private readonly AppDbContext _context;
+
+        public IRoomRepository Rooms { get; private set; }
+        public IPropertyRepository Properties { get; private set; }
+        public IUserRepository Users { get; private set; }
+        public IOccupancyRepository Occupancies { get; private set; }
+
+        public UnitOfWork(
+            AppDbContext context,
+            IRoomRepository roomRepository,
+            IPropertyRepository propertyRepository,
+            IUserRepository userRepository,
+            IOccupancyRepository occupancyRepository)
+        {
+            _context = context;
+            Rooms = roomRepository;
+            Properties = propertyRepository;
+            Users = userRepository;
+            Occupancies = occupancyRepository;
+        }
+
+        public async Task<int> CommitAsync()
+        {
+            return await _context.SaveChangesAsync();
+        }
+
+        public void Dispose()
+        {
+            _context.Dispose();
+        }
+    }
+}
