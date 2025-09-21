@@ -2,47 +2,80 @@
 <html lang="en">
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - PGConnect</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" />
+    <title>@ViewData["Title"] - StayShare</title>
+    <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">PGConnect</a>
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex flex-sm-row-reverse">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                </div>
+<body class="bg-gray-50 text-gray-800">
+
+    <!-- Navbar -->
+    <nav id="navbar" class="fixed top-0 left-0 w-full z-50 bg-white bg-opacity-90 backdrop-blur-md shadow-md transition duration-300">
+        <div class="container mx-auto px-4 py-3 flex items-center justify-between">
+            <!-- Brand -->
+            <a href="/" class="text-orange-500 text-2xl font-bold">StayShare</a>
+
+            <!-- Links -->
+            <div class="hidden md:flex space-x-6 items-center">
+                <a href="/" class="text-gray-700 hover:text-orange-500">Home</a>
+                <a href="/Room" class="text-gray-700 hover:text-orange-500">Rooms</a>
+                <a href="/About" class="text-gray-700 hover:text-orange-500">About</a>
+                <a href="/Contact" class="text-gray-700 hover:text-orange-500">Contact</a>
             </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
+
+            <!-- Auth Buttons -->
+            <div class="flex items-center space-x-3">
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <a href="/Auth/Profile" class="text-gray-700 hover:text-orange-500">Profile</a>
+                    <form asp-controller="Auth" asp-action="Logout" method="post" class="inline">
+                        <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded-md">Logout</button>
+                    </form>
+                }
+                else
+                {
+                    <a href="/Auth/Login" class="border border-orange-500 text-orange-500 px-3 py-1 rounded-md hover:bg-orange-500 hover:text-white transition">Sign In</a>
+                    <a href="/Auth/Register" class="bg-orange-500 text-white px-3 py-1 rounded-md hover:bg-orange-600 transition">Sign Up</a>
+                }
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <div class="md:hidden">
+                <button id="mobile-menu-button" class="text-gray-700 focus:outline-none">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
+                         viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                              d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden px-4 pt-2 pb-4 space-y-2">
+            <a href="/" class="block text-gray-700 hover:text-orange-500">Home</a>
+            <a href="/Room" class="block text-gray-700 hover:text-orange-500">Rooms</a>
+            <a href="/About" class="block text-gray-700 hover:text-orange-500">About</a>
+            <a href="/Contact" class="block text-gray-700 hover:text-orange-500">Contact</a>
+        </div>
+    </nav>
+
+
+    <!-- Page Content -->
+    <div class="container mx-auto px-4 mt-6">
+        @RenderBody()
     </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2025 - PGConnect - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
+    <footer class="bg-white mt-12 border-t border-orange-500 text-center py-4">
+        StayShare © 2025
     </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    @RenderSection("Scripts", required: false)
+
+    <script>
+        // Toggle mobile menu
+        const btn = document.getElementById('mobile-menu-button');
+        const menu = document.getElementById('mobile-menu');
+        btn.addEventListener('click', () => {
+            menu.classList.toggle('hidden');
+        });
+    </script>
+
 </body>
 </html>
