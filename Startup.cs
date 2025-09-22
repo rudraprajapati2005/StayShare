@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -5,7 +6,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using StayShare.Data;
-using StayShare.Repositories; 
+using StayShare.Repositories;
+using System;
 namespace StayShare
 {
     public class Startup
@@ -35,7 +37,16 @@ namespace StayShare
 
             // Register Unit of Work
             services.AddScoped<IUnitOfWork, UnitOfWork>();
- 
+            services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Auth/Login";       // where to redirect if not logged in
+        options.LogoutPath = "/Auth/Logout";     // logout URL
+        options.AccessDeniedPath = "/Auth/AccessDenied"; // optional
+        options.ExpireTimeSpan = TimeSpan.FromDays(7);   // optional
+    });
+
+            services.AddAuthorization();
             // Optional: add session or caching if required later
             // services.AddDistributedMemoryCache();
             // services.AddSession();
@@ -60,7 +71,7 @@ namespace StayShare
             app.UseRouting();
 
             // Optional: if you add authentication/authorization later
-            // app.UseAuthentication();
+            app.UseAuthentication();
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

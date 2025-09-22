@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using StayShare.Models;
 using StayShare.Repositories;
 using System;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
@@ -29,36 +30,50 @@ namespace StayShare.Controllers
         [HttpPost]
         public async Task<IActionResult> Register(User model)
         {
-            if (!ModelState.IsValid)
-                return View(model);
+            model.CreatedAt = DateTime.UtcNow;
+            model.IsVerified = false;
 
-            var existingUser = await _unitOfWork.Users.GetUserByEmailAsync(model.Email);
-            if (existingUser != null)
+            // Remove navigation properties from model state validation
+            ModelState.Remove(nameof(model.UserId));
+            ModelState.Remove(nameof(model.Profile));
+            ModelState.Remove(nameof(model.RoomOccupancies));
+            ModelState.Remove(nameof(model.ParentLinks));
+
+            if (!ModelState.IsValid)
             {
-                ModelState.AddModelError("", "Email already registered.");
-                return View(model);
+                return View("Register", model);
             }
 
-            // Hash password
-            model.PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.PasswordHash);
-
-            // Set created date
-            model.CreatedAt = DateTime.UtcNow;
-
-            // Add user
-            await _unitOfWork.Users.AddUserAsync(model);
-            await _unitOfWork.CommitAsync();
-
-            // Auto-login
-            await SignInUser(model);
-
-            // Map Role for redirection
-            return model.Role switch
+            try
             {
-                "Owner" => RedirectToAction("Create", "Room"),
-                _ => RedirectToAction("Index", "Room")
-            };
+                var existingUser = await _unitOfWork.Users.GetUserByEmailAsync(model.Email);
+                if (existingUser != null)
+                {
+                    ModelState.AddModelError("Email", "Email already registered.");
+                    return View("Register", model);
+                }
+
+                model.PasswordHash = BCrypt.Net.BCrypt.HashPassword(model.PasswordHash);
+
+                await _unitOfWork.Users.AddUserAsync(model);
+                var result = await _unitOfWork.CommitAsync();
+
+                if (result <= 0)
+                {
+                    ModelState.AddModelError("", "Failed to save user. Check database connection.");
+                    return View("Register", model);
+                }
+
+                await SignInUser(model);
+                return RedirectToAction("Success");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "Unexpected error: " + ex.Message);
+                return View("Register", model);
+            }
         }
+
 
         // GET: /Auth/Login
         [HttpGet]
@@ -81,8 +96,8 @@ namespace StayShare.Controllers
             await SignInUser(user);
 
             return user.Role == "Owner"
-                ? RedirectToAction("Create", "Room")
-                : RedirectToAction("Index", "Room");
+                ? RedirectToAction("Index1", "Home")
+                : RedirectToAction("Auth", "LogIn");
         }
 
         // POST: /Auth/Logout
