@@ -10,8 +10,8 @@ using StayShare.Data;
 namespace StayShare.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250921152911_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250927105239_updatedModels")]
+    partial class updatedModels
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -101,6 +101,9 @@ namespace StayShare.Migrations
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
+                    b.Property<string>("Amenities")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("Capacity")
                         .HasColumnType("int");
 
@@ -110,7 +113,13 @@ namespace StayShare.Migrations
                     b.Property<int>("PropertyId")
                         .HasColumnType("int");
 
+                    b.Property<decimal>("RentPerMonth")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<string>("RoomNumber")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("RoomType")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("RoomId");

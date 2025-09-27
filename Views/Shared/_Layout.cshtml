@@ -19,6 +19,14 @@
                 <a href="/Room" class="text-gray-700 hover:text-orange-500">Rooms</a>
                 <a href="/About" class="text-gray-700 hover:text-orange-500">About</a>
                 <a href="/Contact" class="text-gray-700 hover:text-orange-500">Contact</a>
+                @if (User.Identity.IsAuthenticated)
+                {
+                    var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
+                    @if (role == "Owner")
+                    {
+                        <a href="/Property" class="text-gray-700 hover:text-orange-500">My Property</a>
+                    }
+                }
             </div>
 
             <!-- Auth Buttons -->
@@ -55,6 +63,14 @@
             <a href="/Room" class="block text-gray-700 hover:text-orange-500">Rooms</a>
             <a href="/About" class="block text-gray-700 hover:text-orange-500">About</a>
             <a href="/Contact" class="block text-gray-700 hover:text-orange-500">Contact</a>
+            @if (User.Identity.IsAuthenticated)
+            {
+                var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
+                @if (role == "Owner")
+                {
+                    <a href="/Property" class="block text-gray-700 hover:text-orange-500">My Property</a>
+                }
+            }
         </div>
     </nav>
 
@@ -76,6 +92,8 @@
             menu.classList.toggle('hidden');
         });
     </script>
+
+    @await RenderSectionAsync("Scripts", required: false)
 
 </body>
 </html>

@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace StayShare.Migrations
 {
-    public partial class InitialCreate : Migration
+    public partial class stayshare : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

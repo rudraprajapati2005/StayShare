@@ -32,6 +32,14 @@ namespace StayShare.Repositories
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<Room>> GetRoomsByPropertyIdAsync(int propertyId)
+        {
+            return await _context.Rooms
+                .Include(r => r.Property)
+                .Where(r => r.PropertyId == propertyId)
+                .ToListAsync();
+        }
+
         public async Task<IEnumerable<RoomOccupancy>> GetCurrentOccupantsAsync(int roomId)
         {
             return await _context.RoomOccupancies
@@ -43,6 +51,20 @@ namespace StayShare.Repositories
         public async Task AddRoomAsync(Room room)
         {
             await _context.Rooms.AddAsync(room);
+        }
+
+        public async Task UpdateRoomAsync(Room room)
+        {
+            _context.Rooms.Update(room);
+        }
+
+        public async Task DeleteRoomAsync(int roomId)
+        {
+            var room = await _context.Rooms.FindAsync(roomId);
+            if (room != null)
+            {
+                _context.Rooms.Remove(room);
+            }
         }
 
         public async Task SaveChangesAsync()

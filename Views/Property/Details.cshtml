@@ -1,0 +1,192 @@
+@model StayShare.Models.Property
+@{
+    ViewData["Title"] = "Property Details";
+}
+
+<div class="min-h-screen bg-gray-100 py-10 px-6">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-3xl font-bold text-orange-600">@Model.Name</h1>
+                <p class="text-gray-600 mt-2">Property Details & Room Management</p>
+            </div>
+            <div class="flex space-x-3">
+                <a href="/Room/Create?propertyId=@Model.PropertyId" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-medium transition flex items-center">
+                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                    </svg>
+                    Add Room
+                </a>
+                <a href="/Property/Edit/@Model.PropertyId" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition">
+                    Edit Property
+                </a>
+                <a href="/Property" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium transition">
+                    Back to Properties
+                </a>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Property Information -->
+            <div class="lg:col-span-2">
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h2 class="text-2xl font-semibold text-gray-900 mb-4">Property Information</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Property Name</label>
+                            <p class="text-gray-900">@Model.Name</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                            <span class="bg-blue-100 text-blue-800 text-sm font-medium px-2.5 py-0.5 rounded-full">
+                                @Model.Type
+                            </span>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                            <span class="bg-green-100 text-green-800 text-sm font-medium px-2.5 py-0.5 rounded-full">
+                                @Model.Category
+                            </span>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Owner Contact</label>
+                            <p class="text-gray-900">@Model.OwnerContact</p>
+                        </div>
+                        
+                        <div class="md:col-span-2">
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                            <p class="text-gray-900">@Model.Address</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">City</label>
+                            <p class="text-gray-900">@Model.City</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">State</label>
+                            <p class="text-gray-900">@Model.State</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Pincode</label>
+                            <p class="text-gray-900">@Model.Pincode</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Coordinates</label>
+                            <p class="text-gray-900">@Model.Latitude, @Model.Longitude</p>
+                        </div>
+                        
+                        @if (!string.IsNullOrEmpty(Model.Amenities))
+                        {
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Amenities</label>
+                                <div class="flex flex-wrap gap-2">
+                                    @foreach (var amenity in Model.Amenities.Split(','))
+                                    {
+                                        <span class="bg-gray-100 text-gray-700 text-sm px-3 py-1 rounded-full">@amenity.Trim()</span>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- Map Display -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Location Map</h3>
+                    <div id="map" class="w-full h-64 border border-gray-300 rounded-md bg-gray-100 flex items-center justify-center">
+                        <span class="text-gray-500">Map will load here</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rooms Section -->
+            <div class="lg:col-span-1">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Rooms (@Model.Rooms?.Count ?? 0)</h3>
+                    
+                    @if (Model.Rooms != null && Model.Rooms.Any())
+                    {
+                        <div class="space-y-4">
+                            @foreach (var room in Model.Rooms)
+                            {
+                                <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                                    <div class="flex justify-between items-start mb-2">
+                                        <h4 class="font-medium text-gray-900">Room @room.RoomNumber</h4>
+                                        <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded">
+                                            @room.RoomType
+                                        </span>
+                                    </div>
+                                    
+                                    <div class="text-sm text-gray-600 space-y-1">
+                                        <p><strong>Rent:</strong> ₹@room.RentPerMonth/month</p>
+                                        <p><strong>Capacity:</strong> @room.Capacity persons</p>
+                                        @if (!string.IsNullOrEmpty(room.Amenities))
+                                        {
+                                            <p><strong>Amenities:</strong> @room.Amenities</p>
+                                        }
+                                    </div>
+                                    
+                                    <div class="flex space-x-2 mt-3">
+                                        <a href="/Room/Edit/@room.RoomId" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                            Edit
+                                        </a>
+                                        <a href="/Room/Delete/@room.RoomId" class="text-red-600 hover:text-red-800 text-sm font-medium">
+                                            Delete
+                                        </a>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-8">
+                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
+                            </svg>
+                            <h4 class="mt-2 text-sm font-medium text-gray-900">No rooms yet</h4>
+                            <p class="mt-1 text-sm text-gray-500">Add rooms to this property to get started.</p>
+                            <div class="mt-4">
+                                <a href="/Room/Create?propertyId=@Model.PropertyId" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm font-medium transition">
+                                    Add First Room
+                                </a>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Google Maps API -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAbos3cdzv_-lMRsxb21oG20_xenAwN34Q&callback=initMap" async defer></script>
+    
+    <script>
+        function initMap() {
+            const lat = @Model.Latitude;
+            const lng = @Model.Longitude;
+            
+            const map = new google.maps.Map(document.getElementById('map'), {
+                center: { lat: lat, lng: lng },
+                zoom: 15,
+                mapTypeId: google.maps.MapTypeId.ROADMAP
+            });
+            
+            const marker = new google.maps.Marker({
+                position: { lat: lat, lng: lng },
+                map: map,
+                title: '@Model.Name'
+            });
+        }
+    </script>
+}

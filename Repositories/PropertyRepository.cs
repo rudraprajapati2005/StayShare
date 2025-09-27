@@ -31,6 +31,13 @@ namespace StayShare.Repositories
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<Property>> GetAllPropertiesAsync()
+        {
+            return await _context.Properties
+                .Include(p => p.Rooms)
+                .ToListAsync();
+        }
+
         public async Task AddPropertyAsync(Property property)
         {
             await _context.Properties.AddAsync(property);

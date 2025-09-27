@@ -1,0 +1,459 @@
+@model StayShare.Models.Property
+@{
+    ViewData["Title"] = "Create Property";
+}
+
+<div class="min-h-screen bg-gray-100 py-10 px-6">
+    <div class="max-w-2xl mx-auto bg-white shadow-md rounded-lg p-8">
+        <h1 class="text-3xl font-bold text-orange-600 mb-6">Create New Property</h1>
+
+        <form asp-controller="Property" asp-action="Create" method="post" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Property Name -->
+                <div class="md:col-span-2">
+                    <label asp-for="Name" class="block text-sm font-medium text-gray-700 mb-2">Property Name</label>
+                    <input asp-for="Name" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="e.g., Sunrise PG" />
+                    <span asp-validation-for="Name" class="text-red-500 text-sm"></span>
+                </div>
+
+                <!-- Property Type -->
+                <div>
+                    <label asp-for="Type" class="block text-sm font-medium text-gray-700 mb-2">Property Type</label>
+                    <select asp-for="Type" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                        <option value="">Select Type</option>
+                        <option value="PG">PG</option>
+                        <option value="Hostel">Hostel</option>
+                        <option value="House">House</option>
+                    </select>
+                    <span asp-validation-for="Type" class="text-red-500 text-sm"></span>
+                </div>
+
+                <!-- Category -->
+                <div>
+                    <label asp-for="Category" class="block text-sm font-medium text-gray-700 mb-2">Category</label>
+                    <select asp-for="Category" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500">
+                        <option value="">Select Category</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Unisex">Unisex</option>
+                    </select>
+                    <span asp-validation-for="Category" class="text-red-500 text-sm"></span>
+                </div>
+
+                <!-- Address -->
+                <div class="md:col-span-2">
+                    <label asp-for="Address" class="block text-sm font-medium text-gray-700 mb-2">Address</label>
+                    <div class="relative">
+                        <input type="text" id="address-search" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="Search for location (e.g., Padmavati, Delhi)" />
+                        <div id="address-suggestions" class="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg hidden max-h-60 overflow-y-auto"></div>
+                    </div>
+                    <textarea asp-for="Address" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 mt-2" placeholder="Enter full address"></textarea>
+                    <span asp-validation-for="Address" class="text-red-500 text-sm"></span>
+                    <div class="mt-2 flex flex-wrap gap-2">
+                        <button type="button" id="set-nadiad" class="px-3 py-1 bg-green-500 text-white text-sm rounded hover:bg-green-600">
+                            🏠 Know your location
+                        </button>
+                        <button type="button" id="debug-location" class="px-3 py-1 bg-purple-500 text-white text-sm rounded hover:bg-purple-600">
+                            🔍 Debug Location
+                        </button>
+                        <button type="button" id="clear-location" class="px-3 py-1 bg-gray-500 text-white text-sm rounded hover:bg-gray-600">
+                            Clear Location
+                        </button>
+                    </div>
+                    <div id="location-debug" class="mt-2 p-2 bg-gray-100 rounded text-xs hidden">
+                        <strong>Location Debug Info:</strong>
+                        <div id="debug-content"></div>
+                    </div>
+                </div>
+
+                <!-- City -->
+                <div>
+                    <label asp-for="City" class="block text-sm font-medium text-gray-700 mb-2">City</label>
+                    <input asp-for="City" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="Enter city" />
+                    <span asp-validation-for="City" class="text-red-500 text-sm"></span>
+                </div>
+
+                <!-- State -->
+                <div>
+                    <label asp-for="State" class="block text-sm font-medium text-gray-700 mb-2">State</label>
+                    <input asp-for="State" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="Enter state" />
+                    <span asp-validation-for="State" class="text-red-500 text-sm"></span>
+                </div>
+
+                <!-- Pincode -->
+                <div>
+                    <label asp-for="Pincode" class="block text-sm font-medium text-gray-700 mb-2">Pincode</label>
+                    <input asp-for="Pincode" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="Enter pincode" />
+                    <span asp-validation-for="Pincode" class="text-red-500 text-sm"></span>
+                </div>
+
+                <!-- Owner Contact -->
+                <div>
+                    <label asp-for="OwnerContact" class="block text-sm font-medium text-gray-700 mb-2">Owner Contact</label>
+                    <input asp-for="OwnerContact" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="Phone number or email" />
+                    <span asp-validation-for="OwnerContact" class="text-red-500 text-sm"></span>
+                </div>
+
+                <!-- Latitude -->
+                <div>
+                    <label asp-for="Latitude" class="block text-sm font-medium text-gray-700 mb-2">Latitude</label>
+                    <input asp-for="Latitude" type="number" step="any" readonly class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100" placeholder="0.0" />
+                    <span asp-validation-for="Latitude" class="text-red-500 text-sm"></span>
+                </div>
+
+                <!-- Longitude -->
+                <div>
+                    <label asp-for="Longitude" class="block text-sm font-medium text-gray-700 mb-2">Longitude</label>
+                    <input asp-for="Longitude" type="number" step="any" readonly class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100" placeholder="0.0" />
+                    <span asp-validation-for="Longitude" class="text-red-500 text-sm"></span>
+                </div>
+
+                <!-- Map Display -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Location Preview</label>
+                    <div id="map" class="w-full h-64 border border-gray-300 rounded-md bg-gray-100 flex items-center justify-center">
+                        <span class="text-gray-500">Map will appear here when location is selected</span>
+                    </div>
+                </div>
+
+                <!-- Amenities -->
+                <div class="md:col-span-2">
+                    <label asp-for="Amenities" class="block text-sm font-medium text-gray-700 mb-2">Amenities</label>
+                    <textarea asp-for="Amenities" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500" placeholder="WiFi, AC, Parking, etc. (comma-separated)"></textarea>
+                    <span asp-validation-for="Amenities" class="text-red-500 text-sm"></span>
+                </div>
+            </div>
+
+            <!-- Submit Buttons -->
+            <div class="flex justify-end space-x-4 pt-6">
+                <a href="/Home/Index1" class="px-6 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition">
+                    Cancel
+                </a>
+                <button type="submit" class="px-6 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600 transition">
+                    Create Property
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <!-- Load jQuery first -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    
+    <!-- Load jQuery validation -->
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+    
+    <!-- Google Maps API -->
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAbos3cdzv_-lMRsxb21oG20_xenAwN34Q&libraries=places&callback=initGoogleMaps" async defer></script>
+    
+    <script>
+        let map;
+        let marker;
+        let geocoder;
+        let placesService;
+        let autocompleteService;
+
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+        });
+
+        // This function will be called when Google Maps API is loaded
+        function initGoogleMaps() {
+            console.log('Google Maps API loaded');
+            initializeMap();
+        }
+
+        function initializeMap() {
+            // Initialize map (will be shown when location is selected)
+            const mapElement = document.getElementById('map');
+            
+            // Initialize geocoder and places service
+            geocoder = new google.maps.Geocoder();
+            autocompleteService = new google.maps.places.AutocompleteService();
+            console.log('Map services initialized');
+            
+            // Initialize a default map centered on India
+            if (mapElement && !map) {
+                map = new google.maps.Map(mapElement, {
+                    center: { lat: 20.5937, lng: 78.9629 }, // Center of India
+                    zoom: 5,
+                    mapTypeId: google.maps.MapTypeId.ROADMAP
+                });
+                console.log('Default map initialized');
+            }
+        }
+
+        function setupEventListeners() {
+            const addressSearch = document.getElementById('address-search');
+            const suggestionsDiv = document.getElementById('address-suggestions');
+            const setNadiadBtn = document.getElementById('set-nadiad');
+            const debugLocationBtn = document.getElementById('debug-location');
+            const clearLocationBtn = document.getElementById('clear-location');
+
+            // Address search with suggestions
+            addressSearch.addEventListener('input', function() {
+                const query = this.value.trim();
+                if (query.length > 2) {
+                    searchPlaces(query);
+                } else {
+                    suggestionsDiv.classList.add('hidden');
+                }
+            });
+
+            // Know your location (Nadiad)
+            setNadiadBtn.addEventListener('click', setNadiadLocation);
+
+            // Debug location
+            debugLocationBtn.addEventListener('click', debugLocation);
+
+            // Clear location
+            clearLocationBtn.addEventListener('click', clearLocation);
+
+            // Hide suggestions when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!addressSearch.contains(e.target) && !suggestionsDiv.contains(e.target)) {
+                    suggestionsDiv.classList.add('hidden');
+                }
+            });
+        }
+
+        function searchPlaces(query) {
+            const request = {
+                query: query,
+                fields: ['name', 'formatted_address', 'geometry']
+            };
+
+            autocompleteService.getPlacePredictions(request, function(predictions, status) {
+                if (status === google.maps.places.PlacesServiceStatus.OK) {
+                    displaySuggestions(predictions);
+                }
+            });
+        }
+
+        function displaySuggestions(predictions) {
+            const suggestionsDiv = document.getElementById('address-suggestions');
+            suggestionsDiv.innerHTML = '';
+
+            predictions.forEach(function(prediction) {
+                const suggestionItem = document.createElement('div');
+                suggestionItem.className = 'p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-200';
+                suggestionItem.innerHTML = `
+                    <div class="font-medium">${prediction.structured_formatting.main_text}</div>
+                    <div class="text-sm text-gray-600">${prediction.structured_formatting.secondary_text}</div>
+                `;
+
+                suggestionItem.addEventListener('click', function() {
+                    selectPlace(prediction);
+                });
+
+                suggestionsDiv.appendChild(suggestionItem);
+            });
+
+            suggestionsDiv.classList.remove('hidden');
+        }
+
+        function selectPlace(prediction) {
+            const addressSearch = document.getElementById('address-search');
+            const suggestionsDiv = document.getElementById('address-suggestions');
+            
+            addressSearch.value = prediction.description;
+            suggestionsDiv.classList.add('hidden');
+
+            // Geocode the selected place
+            geocoder.geocode({ placeId: prediction.place_id }, function(results, status) {
+                if (status === 'OK' && results[0]) {
+                    const place = results[0];
+                    updateLocationData(place);
+                }
+            });
+        }
+
+        function setNadiadLocation() {
+            // Set Nadiad coordinates (approximate center of Nadiad, Gujarat)
+            const nadiadLat = 22.6938;
+            const nadiadLng = 72.8615;
+            
+            // Geocode Nadiad to get proper address
+            geocoder.geocode({ location: { lat: nadiadLat, lng: nadiadLng } }, function(results, status) {
+                if (status === 'OK' && results[0]) {
+                    const addressSearch = document.getElementById('address-search');
+                    addressSearch.value = results[0].formatted_address;
+                    updateLocationData(results[0]);
+                    console.log('Nadiad location set:', results[0].formatted_address);
+                } else {
+                    // Fallback: manually set Nadiad data
+                    document.getElementById('address-search').value = 'Nadiad, Gujarat, India';
+                    document.querySelector('textarea[name="Address"]').value = 'Nadiad, Gujarat, India';
+                    document.querySelector('input[name="City"]').value = 'Nadiad';
+                    document.querySelector('input[name="State"]').value = 'Gujarat';
+                    document.querySelector('input[name="Latitude"]').value = nadiadLat;
+                    document.querySelector('input[name="Longitude"]').value = nadiadLng;
+                    updateMap(nadiadLat, nadiadLng);
+                    console.log('Nadiad location set manually');
+                }
+            });
+        }
+
+        function debugLocation() {
+            const debugDiv = document.getElementById('location-debug');
+            const debugContent = document.getElementById('debug-content');
+            
+            debugDiv.classList.remove('hidden');
+            debugContent.innerHTML = '<div class="text-blue-600">Gathering location information...</div>';
+            
+            // Check browser information
+            const browserInfo = `
+                <div class="mb-2">
+                    <strong>Browser Info:</strong><br>
+                    User Agent: ${navigator.userAgent}<br>
+                    Language: ${navigator.language}<br>
+                    Platform: ${navigator.platform}<br>
+                    Geolocation Supported: ${navigator.geolocation ? 'Yes' : 'No'}
+                </div>
+            `;
+            
+            debugContent.innerHTML = browserInfo;
+            
+            if (navigator.geolocation) {
+                const options = {
+                    enableHighAccuracy: true,
+                    timeout: 10000,
+                    maximumAge: 0
+                };
+                
+                navigator.geolocation.getCurrentPosition(
+                    function(position) {
+                        const lat = position.coords.latitude;
+                        const lng = position.coords.longitude;
+                        const accuracy = position.coords.accuracy;
+                        const timestamp = new Date(position.timestamp);
+                        
+                        debugContent.innerHTML = browserInfo + `
+                            <div class="mb-2">
+                                <strong>GPS Coordinates:</strong><br>
+                                Latitude: ${lat}<br>
+                                Longitude: ${lng}<br>
+                                Accuracy: ${accuracy} meters<br>
+                                Timestamp: ${timestamp.toLocaleString()}
+                            </div>
+                            <div class="mb-2">
+                                <strong>Possible Reasons for Poland Location:</strong><br>
+                                1. VPN/Proxy server routing through Poland<br>
+                                2. Network provider routing through Poland<br>
+                                3. Browser location cache from previous session<br>
+                                4. GPS coordinates being misinterpreted
+                            </div>
+                            <div class="text-green-600">
+                                <strong>Solution:</strong> Use the "🏠 Set Nadiad" button for correct location
+                            </div>
+                        `;
+                        
+                        // Try to get address from coordinates
+                        if (geocoder) {
+                            geocoder.geocode({ location: { lat: lat, lng: lng } }, function(results, status) {
+                                if (status === 'OK' && results[0]) {
+                                    debugContent.innerHTML += `
+                                        <div class="mt-2 text-red-600">
+                                            <strong>Detected Address:</strong> ${results[0].formatted_address}
+                                        </div>
+                                    `;
+                                }
+                            });
+                        }
+                    },
+                    function(error) {
+                        debugContent.innerHTML = browserInfo + `
+                            <div class="text-red-600">
+                                <strong>Geolocation Error:</strong> ${error.message}<br>
+                                Code: ${error.code}
+                            </div>
+                        `;
+                    },
+                    options
+                );
+            } else {
+                debugContent.innerHTML = browserInfo + '<div class="text-red-600">Geolocation not supported</div>';
+            }
+        }
+
+        function updateLocationData(place) {
+            const lat = place.geometry.location.lat();
+            const lng = place.geometry.location.lng();
+            const address = place.formatted_address;
+
+            // Update form fields
+            document.querySelector('input[name="Latitude"]').value = lat;
+            document.querySelector('input[name="Longitude"]').value = lng;
+            document.querySelector('textarea[name="Address"]').value = address;
+
+            // Extract city and state from address components
+            const addressComponents = place.address_components;
+            let city = '';
+            let state = '';
+
+            addressComponents.forEach(function(component) {
+                if (component.types.includes('locality')) {
+                    city = component.long_name;
+                }
+                if (component.types.includes('administrative_area_level_1')) {
+                    state = component.long_name;
+                }
+            });
+
+            if (city) document.querySelector('input[name="City"]').value = city;
+            if (state) document.querySelector('input[name="State"]').value = state;
+
+            // Update map
+            updateMap(lat, lng);
+        }
+
+        function updateMap(lat, lng) {
+            const mapElement = document.getElementById('map');
+            
+            if (!map) {
+                map = new google.maps.Map(mapElement, {
+                    center: { lat: lat, lng: lng },
+                    zoom: 15,
+                    mapTypeId: google.maps.MapTypeId.ROADMAP
+                });
+            } else {
+                map.setCenter({ lat: lat, lng: lng });
+                map.setZoom(15);
+            }
+
+            if (marker) {
+                marker.setPosition({ lat: lat, lng: lng });
+            } else {
+                marker = new google.maps.Marker({
+                    position: { lat: lat, lng: lng },
+                    map: map,
+                    title: 'Property Location'
+                });
+            }
+        }
+
+        function clearLocation() {
+            document.getElementById('address-search').value = '';
+            document.querySelector('textarea[name="Address"]').value = '';
+            document.querySelector('input[name="City"]').value = '';
+            document.querySelector('input[name="State"]').value = '';
+            document.querySelector('input[name="Latitude"]').value = '';
+            document.querySelector('input[name="Longitude"]').value = '';
+            
+            // Reset map to default view
+            if (map) {
+                map.setCenter({ lat: 20.5937, lng: 78.9629 }); // Center of India
+                map.setZoom(5);
+            }
+            
+            // Remove marker
+            if (marker) {
+                marker.setMap(null);
+                marker = null;
+            }
+        }
+    </script>
+}
