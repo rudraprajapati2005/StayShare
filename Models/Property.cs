@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.AspNetCore.Http;
+using System.Collections.Generic;
 
 namespace StayShare.Models
 {
@@ -15,6 +16,8 @@ namespace StayShare.Models
         public double Latitude { get; set; }
         public double Longitude { get; set; }
 
+        public IFormFile ThumbnailCover { get; set; }
+        public string ThumbnailCoverPath { get; set; }
         public string OwnerContact { get; set; }
         public string Amenities { get; set; } // Optional JSON or comma-separated
         public bool IsVerified { get; set; }

@@ -1,6 +1,10 @@
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using StayShare.Models;
 using StayShare.Repositories;
+using System;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace StayShare.Controllers
@@ -94,6 +98,56 @@ namespace StayShare.Controllers
                 return View(model);
             }
         }
+        //changing the thumbnail cover
+        [HttpPost]
+        public async Task<IActionResult> ChangeThumbnail(int id, Property model)
+        {
+            if (!User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Login", "Auth");
+            }
+
+            var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
+            if (role != "Owner")
+            {
+                return RedirectToAction("Index1", "Home");
+            }
+
+            if (model.ThumbnailCover == null || model.ThumbnailCover.Length == 0)
+            {
+                ModelState.AddModelError("", "Please select a valid image file.");
+                return RedirectToAction("Edit", new { id });
+            }
+
+            // ✅ Fetch the existing property
+            var property = await _unitOfWork.Properties.GetPropertyByIdAsync(id);
+            if (property == null)
+            {
+                return NotFound();
+            }
+
+            // ✅ Save the new file
+            var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads");
+            if (!Directory.Exists(uploadPath))
+                Directory.CreateDirectory(uploadPath);
+
+            var fileName = Guid.NewGuid().ToString() + Path.GetExtension(model.ThumbnailCover.FileName);
+            var filePath = Path.Combine(uploadPath, fileName);
+
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await model.ThumbnailCover.CopyToAsync(stream);
+            }
+
+            // ✅ Update only the ThumbnailCoverPath
+            property.ThumbnailCoverPath = "/uploads/" + fileName;
+
+            await _unitOfWork.CommitAsync();
+
+            TempData["SuccessMessage"] = "Thumbnail updated successfully!";
+            return RedirectToAction("Details", new { id = property.PropertyId });
+        }
+
 
         // GET: /Property/Details/5
         public async Task<IActionResult> Details(int id)

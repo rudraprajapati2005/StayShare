@@ -18,6 +18,7 @@
                     </svg>
                     Add Room
                 </a>
+              
                 <a href="/Property/Edit/@Model.PropertyId" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition">
                     Edit Property
                 </a>
@@ -110,7 +111,7 @@
             <!-- Rooms Section -->
             <div class="lg:col-span-1">
                 <div class="bg-white rounded-lg shadow-md p-6">
-                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Rooms (@Model.Rooms?.Count ?? 0)</h3>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Rooms (@(Model.Rooms?.Count ?? 0))</h3>
                     
                     @if (Model.Rooms != null && Model.Rooms.Any())
                     {
@@ -161,7 +162,23 @@
                             </div>
                         </div>
                     }
+                    
                 </div>
+                     <div class="lg:col-span-1 mt-8">
+                     <div class="bg-white rounded-lg shadow-md p-6">
+                            <form  asp-action = "changeThumbnail" asp-controller="property" method ="post" enctype="multidata/form-data" class="max-w-sm mx-auto bg-white p-6 rounded-lg shadow-md">
+                                 <div class="mb-4">
+                                      <label for="Photo" class="block text-gray-700 font-medium mb-2">Change Thumbnail</label>
+                                      <input type="file" name="Photo" id="Photo" accept="image/*"
+                                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                            </div>
+                            <button type="submit"
+            class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+        Upload
+    </button>
+                            </form>
+                        </div>
+                    </div>
             </div>
         </div>
     </div>
