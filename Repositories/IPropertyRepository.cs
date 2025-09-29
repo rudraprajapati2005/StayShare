@@ -9,6 +9,7 @@ namespace StayShare.Repositories
         Task<Property> GetPropertyByIdAsync(int propertyId);
         Task<IEnumerable<Property>> GetPropertiesByCityAsync(string city);
         Task<IEnumerable<Property>> GetAllPropertiesAsync();
+        Task<IEnumerable<Property>> GetPropertiesByOwnerEmailAsync(string ownerEmail);
         Task AddPropertyAsync(Property property);
         Task SaveChangesAsync();
     }

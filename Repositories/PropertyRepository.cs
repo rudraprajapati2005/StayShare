@@ -38,6 +38,14 @@ namespace StayShare.Repositories
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<Property>> GetPropertiesByOwnerEmailAsync(string ownerEmail)
+        {
+            return await _context.Properties
+                .Where(p => p.OwnerContact != null && ownerEmail != null && p.OwnerContact.ToLower() == ownerEmail.ToLower())
+                .Include(p => p.Rooms)
+                .ToListAsync();
+        }
+
         public async Task AddPropertyAsync(Property property)
         {
             await _context.Properties.AddAsync(property);
