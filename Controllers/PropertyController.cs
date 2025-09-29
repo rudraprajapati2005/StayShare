@@ -33,10 +33,9 @@ namespace StayShare.Controllers
                 return RedirectToAction("Index1", "Home");
             }
 
-            // Get current user's properties
-            // Note: You'll need to add a method to get properties by owner
-            // For now, we'll get all properties (you can filter by owner later)
-            var properties = await _unitOfWork.Properties.GetAllPropertiesAsync();
+            // Get current user's properties only
+            var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
+            var properties = await _unitOfWork.Properties.GetPropertiesByOwnerEmailAsync(email);
             
             return View(properties);
         }
@@ -82,6 +81,10 @@ namespace StayShare.Controllers
 
             try
             {
+                // Always tie property to the signed-in owner via email
+                var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
+                model.OwnerContact = email?.Trim();
+
                 // Save thumbnail if provided
                 if (model.ThumbnailCover != null && model.ThumbnailCover.Length > 0)
                 {
@@ -141,6 +144,13 @@ namespace StayShare.Controllers
             if (property == null)
             {
                 return NotFound();
+            }
+
+            // Ensure the signed-in owner owns this property
+            var currentEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
+            if (!string.Equals(property.OwnerContact?.Trim(), currentEmail?.Trim(), System.StringComparison.OrdinalIgnoreCase))
+            {
+                return Forbid();
             }
 
             var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads");

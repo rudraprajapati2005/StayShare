@@ -52,3 +52,4 @@ BEGIN
 END
 
 PRINT 'Database schema update completed successfully!';
+
