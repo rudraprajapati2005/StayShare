@@ -1,15 +1,33 @@
 ﻿using System.Collections.Generic;
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace StayShare.Models
 {
     public class User
     {
         public int UserId { get; set; }
+
+        [Required(ErrorMessage = "Full name is required")]
+        [StringLength(100, ErrorMessage = "Full name cannot exceed 100 characters")]
+        [Display(Name = "Full Name")]
         public string FullName { get; set; }
+
+        [Required(ErrorMessage = "Email is required")]
+        [EmailAddress(ErrorMessage = "Invalid email format")]
+        [StringLength(255, ErrorMessage = "Email cannot exceed 255 characters")]
         public string Email { get; set; }
+
+        [Required(ErrorMessage = "Password is required")]
+        [StringLength(100, MinimumLength = 6, ErrorMessage = "Password must be at least 6 characters long")]
+        [DataType(DataType.Password)]
+        [Display(Name = "Password")]
         public string PasswordHash { get; set; }
-        public string Role { get; set; } // "Student", "Parent", "Owner", "Admin"
+
+        [Required(ErrorMessage = "Role is required")]
+        [RegularExpression("^(Host|Resident|Guardian)$", ErrorMessage = "Role must be Host, Resident, or Guardian")]
+        public string Role { get; set; } // "Host", "Resident", "Guardian"
+        
         public bool IsVerified { get; set; }
         public DateTime CreatedAt { get; set; }
 

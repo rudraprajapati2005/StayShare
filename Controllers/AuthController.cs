@@ -28,6 +28,7 @@ namespace StayShare.Controllers
 
         // POST: /Auth/Register
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(User model)
         {
             model.CreatedAt = DateTime.UtcNow;
@@ -38,6 +39,47 @@ namespace StayShare.Controllers
             ModelState.Remove(nameof(model.Profile));
             ModelState.Remove(nameof(model.RoomOccupancies));
             ModelState.Remove(nameof(model.ParentLinks));
+
+            // Server-side validation
+            if (string.IsNullOrWhiteSpace(model.FullName))
+            {
+                ModelState.AddModelError("FullName", "Full name is required.");
+            }
+            else if (model.FullName.Length > 100)
+            {
+                ModelState.AddModelError("FullName", "Full name cannot exceed 100 characters.");
+            }
+
+            if (string.IsNullOrWhiteSpace(model.Email))
+            {
+                ModelState.AddModelError("Email", "Email is required.");
+            }
+            else if (!IsValidEmail(model.Email))
+            {
+                ModelState.AddModelError("Email", "Invalid email format.");
+            }
+            else if (model.Email.Length > 255)
+            {
+                ModelState.AddModelError("Email", "Email cannot exceed 255 characters.");
+            }
+
+            if (string.IsNullOrWhiteSpace(model.PasswordHash))
+            {
+                ModelState.AddModelError("PasswordHash", "Password is required.");
+            }
+            else if (model.PasswordHash.Length < 6)
+            {
+                ModelState.AddModelError("PasswordHash", "Password must be at least 6 characters long.");
+            }
+
+            if (string.IsNullOrWhiteSpace(model.Role))
+            {
+                ModelState.AddModelError("Role", "Role is required.");
+            }
+            else if (!new[] { "Host", "Resident", "Guardian" }.Contains(model.Role))
+            {
+                ModelState.AddModelError("Role", "Role must be Host, Resident, or Guardian.");
+            }
 
             if (!ModelState.IsValid)
             {
@@ -65,7 +107,7 @@ namespace StayShare.Controllers
                 }
 
                 await SignInUser(model);
-                return RedirectToAction("Success");
+                return RedirectToAction("Index1", "Home");
             }
             catch (Exception ex)
             {
@@ -84,20 +126,47 @@ namespace StayShare.Controllers
 
         // POST: /Auth/Login
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(string email, string password)
         {
-            var user = await _unitOfWork.Users.GetUserByEmailAsync(email);
-            if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+            // Server-side validation
+            if (string.IsNullOrWhiteSpace(email))
             {
-                ModelState.AddModelError("", "Invalid email or password.");
+                ModelState.AddModelError("", "Email is required.");
+            }
+            else if (!IsValidEmail(email))
+            {
+                ModelState.AddModelError("", "Invalid email format.");
+            }
+
+            if (string.IsNullOrWhiteSpace(password))
+            {
+                ModelState.AddModelError("", "Password is required.");
+            }
+
+            if (!ModelState.IsValid)
+            {
                 return View();
             }
 
-            await SignInUser(user);
+            try
+            {
+                var user = await _unitOfWork.Users.GetUserByEmailAsync(email);
+                if (user == null || !BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
+                {
+                    ModelState.AddModelError("", "Invalid email or password.");
+                    return View();
+                }
 
-            return user.Role == "Owner"
-                ? RedirectToAction("Index1", "Home")
-                : RedirectToAction("Auth", "LogIn");
+                await SignInUser(user);
+
+                return RedirectToAction("Index1", "Home");
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError("", "An error occurred during login. Please try again.");
+                return View();
+            }
         }
 
         // POST: /Auth/Logout
@@ -122,6 +191,20 @@ namespace StayShare.Controllers
             var principal = new ClaimsPrincipal(identity);
 
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
+        }
+
+        // Helper method to validate email format
+        private bool IsValidEmail(string email)
+        {
+            try
+            {
+                var addr = new System.Net.Mail.MailAddress(email);
+                return addr.Address == email;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

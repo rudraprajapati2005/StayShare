@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace StayShare.Models
 {
@@ -16,6 +17,7 @@ namespace StayShare.Models
         public double Latitude { get; set; }
         public double Longitude { get; set; }
 
+        [NotMapped]
         public IFormFile ThumbnailCover { get; set; }
         public string ThumbnailCoverPath { get; set; }
         public string OwnerContact { get; set; }
