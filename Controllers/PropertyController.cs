@@ -28,7 +28,7 @@ namespace StayShare.Controllers
             }
 
             var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
-            if (role != "Owner")
+            if (role != "Owner" && role != "Host")
             {
                 return RedirectToAction("Index1", "Home");
             }
@@ -52,7 +52,7 @@ namespace StayShare.Controllers
             }
 
             var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
-            if (role != "Owner")
+            if (role != "Owner" && role != "Host")
             {
                 return RedirectToAction("Index1", "Home");
             }
@@ -64,14 +64,13 @@ namespace StayShare.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(Property model)
         {
-            // Check if user is authenticated and has owner role
             if (!User.Identity.IsAuthenticated)
             {
                 return RedirectToAction("Login", "Auth");
             }
 
             var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
-            if (role != "Owner")
+            if (role != "Owner" && role != "Host")
             {
                 return RedirectToAction("Index1", "Home");
             }
@@ -83,7 +82,25 @@ namespace StayShare.Controllers
 
             try
             {
-                // Set default values
+                // Save thumbnail if provided
+                if (model.ThumbnailCover != null && model.ThumbnailCover.Length > 0)
+                {
+                    var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads");
+                    if (!Directory.Exists(uploadPath))
+                        Directory.CreateDirectory(uploadPath);
+
+                    var fileName = Guid.NewGuid().ToString() + Path.GetExtension(model.ThumbnailCover.FileName);
+                    var filePath = Path.Combine(uploadPath, fileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        await model.ThumbnailCover.CopyToAsync(stream);
+                    }
+
+                    model.ThumbnailCoverPath = "/uploads/" + fileName;
+                }
+
+                // Default values
                 model.IsVerified = false;
 
                 await _unitOfWork.Properties.AddPropertyAsync(model);
@@ -92,13 +109,14 @@ namespace StayShare.Controllers
                 TempData["SuccessMessage"] = "Property created successfully!";
                 return RedirectToAction("Index");
             }
-            catch (System.Exception ex)
+            catch (Exception)
             {
                 ModelState.AddModelError("", "An error occurred while creating the property. Please try again.");
                 return View(model);
             }
         }
-        //changing the thumbnail cover
+
+
         [HttpPost]
         public async Task<IActionResult> ChangeThumbnail(int id, Property model)
         {
@@ -108,7 +126,7 @@ namespace StayShare.Controllers
             }
 
             var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
-            if (role != "Owner")
+            if (role != "Owner" && role != "Host")
             {
                 return RedirectToAction("Index1", "Home");
             }
@@ -119,18 +137,27 @@ namespace StayShare.Controllers
                 return RedirectToAction("Edit", new { id });
             }
 
-            // ✅ Fetch the existing property
             var property = await _unitOfWork.Properties.GetPropertyByIdAsync(id);
             if (property == null)
             {
                 return NotFound();
             }
 
-            // ✅ Save the new file
             var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/uploads");
             if (!Directory.Exists(uploadPath))
                 Directory.CreateDirectory(uploadPath);
 
+            // ✅ Delete old file if exists
+            if (!string.IsNullOrEmpty(property.ThumbnailCoverPath))
+            {
+                var oldFilePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", property.ThumbnailCoverPath.TrimStart('/'));
+                if (System.IO.File.Exists(oldFilePath))
+                {
+                    System.IO.File.Delete(oldFilePath);
+                }
+            }
+
+            // ✅ Save new file
             var fileName = Guid.NewGuid().ToString() + Path.GetExtension(model.ThumbnailCover.FileName);
             var filePath = Path.Combine(uploadPath, fileName);
 
@@ -139,7 +166,6 @@ namespace StayShare.Controllers
                 await model.ThumbnailCover.CopyToAsync(stream);
             }
 
-            // ✅ Update only the ThumbnailCoverPath
             property.ThumbnailCoverPath = "/uploads/" + fileName;
 
             await _unitOfWork.CommitAsync();
@@ -147,7 +173,6 @@ namespace StayShare.Controllers
             TempData["SuccessMessage"] = "Thumbnail updated successfully!";
             return RedirectToAction("Details", new { id = property.PropertyId });
         }
-
 
         // GET: /Property/Details/5
         public async Task<IActionResult> Details(int id)
@@ -158,7 +183,7 @@ namespace StayShare.Controllers
             }
 
             var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
-            if (role != "Owner")
+            if (role != "Owner" && role != "Host")
             {
                 return RedirectToAction("Index1", "Home");
             }
@@ -181,7 +206,7 @@ namespace StayShare.Controllers
             }
 
             var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
-            if (role != "Owner")
+            if (role != "Owner" && role != "Host")
             {
                 return RedirectToAction("Index1", "Home");
             }
@@ -205,7 +230,7 @@ namespace StayShare.Controllers
             }
 
             var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
-            if (role != "Owner")
+            if (role != "Owner" && role != "Host")
             {
                 return RedirectToAction("Index1", "Home");
             }
@@ -256,7 +281,7 @@ namespace StayShare.Controllers
             }
 
             var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
-            if (role != "Owner")
+            if (role != "Owner" && role != "Host")
             {
                 return RedirectToAction("Index1", "Home");
             }
@@ -280,7 +305,7 @@ namespace StayShare.Controllers
             }
 
             var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
-            if (role != "Owner")
+            if (role != "Owner" && role != "Host")
             {
                 return RedirectToAction("Index1", "Home");
             }

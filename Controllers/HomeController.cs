@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using System.IO;
 
 namespace StayShare.Controllers
@@ -110,13 +111,24 @@ namespace StayShare.Controllers
                 };
             }
 
-            return View(user);
+            // Create EditProfileModel from User
+            var editModel = new EditProfileModel
+            {
+                UserId = user.UserId,
+                FullName = user.FullName,
+                Email = user.Email,
+                Role = user.Role,
+                CreatedAt = user.CreatedAt,
+                Profile = user.Profile
+            };
+
+            return View(editModel);
         }
 
         // POST: Profile/Edit
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditProfile(User model, IFormFile profileImageFile)
+        public async Task<IActionResult> EditProfile(EditProfileModel model, IFormFile profileImageFile)
         {
             if (!User.Identity.IsAuthenticated)
             {
@@ -303,6 +315,16 @@ namespace StayShare.Controllers
         }
 
         public IActionResult Privacy()
+        {
+            return View();
+        }
+
+        public IActionResult About()
+        {
+            return View();
+        }
+
+        public IActionResult Contact()
         {
             return View();
         }
