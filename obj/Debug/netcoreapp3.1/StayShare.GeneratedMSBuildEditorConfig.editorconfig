@@ -1,5 +1,8 @@
 is_global = true
 build_property.RootNamespace = StayShare
-build_property.ProjectDir = D:\SEM5Projects\WAD project\StayShare-dotnet\StayShare-dotnet\StayShare\
+build_property.ProjectDir = D:\dotnet\StayShare-dotnet\StayShare\
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
+build_property.CsWinRTUseWindowsUIXamlProjections = false
+build_property.EffectiveAnalysisLevelStyle = 
+build_property.EnableCodeStyleSeverity = 

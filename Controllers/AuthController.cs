@@ -100,6 +100,29 @@ namespace StayShare.Controllers
                 : RedirectToAction("Auth", "LogIn");
         }
 
+        // GET: /Auth/Profile
+        [HttpGet]
+        public IActionResult Profile()
+        {
+            if (!User.Identity.IsAuthenticated)
+            {
+                return RedirectToAction("Login");
+            }
+
+            ViewBag.FullName = User.FindFirst(ClaimTypes.Name)?.Value ?? "";
+            ViewBag.Email = User.FindFirst(ClaimTypes.Email)?.Value ?? "";
+            ViewBag.Role = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
+
+            return View();
+        }
+
+        // GET: /Auth/Success
+        [HttpGet]
+        public IActionResult Success()
+        {
+            return View();
+        }
+
         // POST: /Auth/Logout
         [HttpPost]
         public async Task<IActionResult> Logout()

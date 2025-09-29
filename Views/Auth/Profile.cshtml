@@ -1,0 +1,14 @@
+@{
+    ViewData["Title"] = "Profile";
+}
+
+<div class="mt-20 max-w-3xl mx-auto">
+    <h1 class="text-3xl font-bold text-orange-600 mb-4">Your Profile</h1>
+    <div class="bg-white shadow p-4 rounded">
+        <div class="mb-2"><span class="font-semibold">Name:</span> @ViewBag.FullName</div>
+        <div class="mb-2"><span class="font-semibold">Email:</span> @ViewBag.Email</div>
+        <div class="mb-2"><span class="font-semibold">Role:</span> @ViewBag.Role</div>
+    </div>
+</div>
+
+

@@ -11,20 +11,20 @@
     <nav id="navbar" class="fixed top-0 left-0 w-full z-50 bg-white bg-opacity-90 backdrop-blur-md shadow-md transition duration-300">
         <div class="container mx-auto px-4 py-3 flex items-center justify-between">
             <!-- Brand -->
-            <a href="/" class="text-orange-500 text-2xl font-bold">StayShare</a>
+            <a asp-controller="Home" asp-action="Index" class="text-orange-500 text-2xl font-bold">StayShare</a>
 
             <!-- Links -->
             <div class="hidden md:flex space-x-6 items-center">
-                <a href="/" class="text-gray-700 hover:text-orange-500">Home</a>
-                <a href="/Room" class="text-gray-700 hover:text-orange-500">Rooms</a>
-                <a href="/About" class="text-gray-700 hover:text-orange-500">About</a>
-                <a href="/Contact" class="text-gray-700 hover:text-orange-500">Contact</a>
+                <a asp-controller="Home" asp-action="Index" class="text-gray-700 hover:text-orange-500">Home</a>
+                <a asp-controller="Property" asp-action="Index" class="text-gray-700 hover:text-orange-500">Rooms</a>
+                <a asp-controller="Home" asp-action="About" class="text-gray-700 hover:text-orange-500">About</a>
+                <a asp-controller="Home" asp-action="Contact" class="text-gray-700 hover:text-orange-500">Contact</a>
                 @if (User.Identity.IsAuthenticated)
                 {
                     var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
                     @if (role == "Owner")
                     {
-                        <a href="/Property" class="text-gray-700 hover:text-orange-500">My Property</a>
+                        <a asp-controller="Property" asp-action="Index" class="text-gray-700 hover:text-orange-500">My Property</a>
                     }
                 }
             </div>
@@ -33,15 +33,15 @@
             <div class="flex items-center space-x-3">
                 @if (User.Identity.IsAuthenticated)
                 {
-                    <a href="/Auth/Profile" class="text-gray-700 hover:text-orange-500">Profile</a>
+                    <a asp-controller="Auth" asp-action="Profile" class="text-gray-700 hover:text-orange-500">Profile</a>
                     <form asp-controller="Auth" asp-action="Logout" method="post" class="inline">
                         <button type="submit" class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded-md">Logout</button>
                     </form>
                 }
                 else
                 {
-                    <a href="/Auth/Login" class="border border-orange-500 text-orange-500 px-3 py-1 rounded-md hover:bg-orange-500 hover:text-white transition">Sign In</a>
-                    <a href="/Auth/Register" class="bg-orange-500 text-white px-3 py-1 rounded-md hover:bg-orange-600 transition">Sign Up</a>
+                    <a asp-controller="Auth" asp-action="Login" class="border border-orange-500 text-orange-500 px-3 py-1 rounded-md hover:bg-orange-500 hover:text-white transition">Sign In</a>
+                    <a asp-controller="Auth" asp-action="Register" class="bg-orange-500 text-white px-3 py-1 rounded-md hover:bg-orange-600 transition">Sign Up</a>
                 }
             </div>
 
@@ -59,16 +59,16 @@
 
         <!-- Mobile Menu -->
         <div id="mobile-menu" class="hidden md:hidden px-4 pt-2 pb-4 space-y-2">
-            <a href="/" class="block text-gray-700 hover:text-orange-500">Home</a>
-            <a href="/Room" class="block text-gray-700 hover:text-orange-500">Rooms</a>
-            <a href="/About" class="block text-gray-700 hover:text-orange-500">About</a>
-            <a href="/Contact" class="block text-gray-700 hover:text-orange-500">Contact</a>
+            <a asp-controller="Home" asp-action="Index" class="block text-gray-700 hover:text-orange-500">Home</a>
+            <a asp-controller="Property" asp-action="Index" class="block text-gray-700 hover:text-orange-500">Rooms</a>
+            <a asp-controller="Home" asp-action="About" class="block text-gray-700 hover:text-orange-500">About</a>
+            <a asp-controller="Home" asp-action="Contact" class="block text-gray-700 hover:text-orange-500">Contact</a>
             @if (User.Identity.IsAuthenticated)
             {
                 var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
                 @if (role == "Owner")
                 {
-                    <a href="/Property" class="block text-gray-700 hover:text-orange-500">My Property</a>
+                    <a asp-controller="Property" asp-action="Index" class="block text-gray-700 hover:text-orange-500">My Property</a>
                 }
             }
         </div>
