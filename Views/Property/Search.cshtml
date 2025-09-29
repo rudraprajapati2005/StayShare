@@ -1,0 +1,79 @@
+@{
+    ViewData["Title"] = "Search Properties";
+}
+
+<div class="min-h-screen bg-gray-100 py-10 px-6">
+    <div class="max-w-3xl mx-auto bg-white shadow-md rounded-lg p-8">
+        <h1 class="text-3xl font-bold text-orange-600 mb-6">Find Nearby Properties</h1>
+
+        <form asp-controller="Property" asp-action="Search" method="post" class="space-y-6">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">City (optional if GPS provided)</label>
+                    <input name="city" class="w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="e.g., Nadiad" />
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Latitude</label>
+                    <input id="lat" name="latitude" type="number" step="any" class="w-full px-3 py-2 border border-gray-300 rounded-md" />
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Longitude</label>
+                    <input id="lng" name="longitude" type="number" step="any" class="w-full px-3 py-2 border border-gray-300 rounded-md" />
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Property Type</label>
+                    <select name="type" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        <option value="">Any</option>
+                        <option value="PG">PG</option>
+                        <option value="Hostel">Hostel</option>
+                        <option value="Hotel">Hotel</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">PG Category</label>
+                    <select name="category" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        <option value="">Any</option>
+                        <option value="Male">Boys</option>
+                        <option value="Female">Girls</option>
+                        <option value="Unisex">Unisex</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Radius (km)</label>
+                    <select name="radiusKm" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                        <option value="2">2 km</option>
+                        <option value="5" selected>5 km</option>
+                        <option value="10">10 km</option>
+                        <option value="15">15 km</option>
+                    </select>
+                </div>
+
+                <div class="md:col-span-2">
+                    <button type="button" id="use-gps" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Use My Location</button>
+                </div>
+            </div>
+
+            <div class="flex justify-end pt-6">
+                <button type="submit" class="px-6 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600">Search</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+document.getElementById('use-gps').addEventListener('click', function() {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(function(pos) {
+        document.getElementById('lat').value = pos.coords.latitude;
+        document.getElementById('lng').value = pos.coords.longitude;
+    });
+});
+</script>
+}
+
+

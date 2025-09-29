@@ -16,15 +16,20 @@
             <!-- Links -->
             <div class="hidden md:flex space-x-6 items-center">
                 <a asp-controller="Home" asp-action="Index" class="text-gray-700 hover:text-orange-500">Home</a>
-                <a asp-controller="Property" asp-action="Index" class="text-gray-700 hover:text-orange-500">Rooms</a>
+                @{
+                    var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
+                }
+                @if (string.IsNullOrEmpty(role) || !(role == "Owner" || role == "Host"))
+                {
+                    <a asp-controller="Property" asp-action="Search" class="text-gray-700 hover:text-orange-500">Find Stays</a>
+                }
                 <a asp-controller="Home" asp-action="About" class="text-gray-700 hover:text-orange-500">About</a>
                 <a asp-controller="Home" asp-action="Contact" class="text-gray-700 hover:text-orange-500">Contact</a>
                 @if (User.Identity.IsAuthenticated)
                 {
-                    var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
                     @if (role == "Owner" || role == "Host")
                     {
-                        <a asp-controller="Property" asp-action="Index" class="text-gray-700 hover:text-orange-500">Properties</a>
+                        <a asp-controller="Property" asp-action="Index" class="text-gray-700 hover:text-orange-500">My Properties</a>
                     }
                 }
             </div>
@@ -60,15 +65,20 @@
         <!-- Mobile Menu -->
         <div id="mobile-menu" class="hidden md:hidden px-4 pt-2 pb-4 space-y-2">
             <a asp-controller="Home" asp-action="Index" class="block text-gray-700 hover:text-orange-500">Home</a>
-            <a asp-controller="Property" asp-action="Index" class="block text-gray-700 hover:text-orange-500">Rooms</a>
+            @{
+                var mrole = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
+            }
+            @if (string.IsNullOrEmpty(mrole) || !(mrole == "Owner" || mrole == "Host"))
+            {
+                <a asp-controller="Property" asp-action="Search" class="block text-gray-700 hover:text-orange-500">Find Stays</a>
+            }
             <a asp-controller="Home" asp-action="About" class="block text-gray-700 hover:text-orange-500">About</a>
             <a asp-controller="Home" asp-action="Contact" class="block text-gray-700 hover:text-orange-500">Contact</a>
             @if (User.Identity.IsAuthenticated)
             {
-                var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
-                @if (role == "Owner" || role == "Host")
+                @if (mrole == "Owner" || mrole == "Host")
                 {
-                    <a asp-controller="Property" asp-action="Index" class="block text-gray-700 hover:text-orange-500">Properties</a>
+                    <a asp-controller="Property" asp-action="Index" class="block text-gray-700 hover:text-orange-500">My Properties</a>
                 }
             }
         </div>
