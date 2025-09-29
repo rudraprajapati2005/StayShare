@@ -22,9 +22,9 @@
                 @if (User.Identity.IsAuthenticated)
                 {
                     var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
-                    @if (role == "Owner")
+                    @if (role == "Owner" || role == "Host")
                     {
-                        <a asp-controller="Property" asp-action="Index" class="text-gray-700 hover:text-orange-500">My Property</a>
+                        <a asp-controller="Property" asp-action="Index" class="text-gray-700 hover:text-orange-500">Properties</a>
                     }
                 }
             </div>
@@ -66,9 +66,9 @@
             @if (User.Identity.IsAuthenticated)
             {
                 var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
-                @if (role == "Owner")
+                @if (role == "Owner" || role == "Host")
                 {
-                    <a asp-controller="Property" asp-action="Index" class="block text-gray-700 hover:text-orange-500">My Property</a>
+                    <a asp-controller="Property" asp-action="Index" class="block text-gray-700 hover:text-orange-500">Properties</a>
                 }
             }
         </div>

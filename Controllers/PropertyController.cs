@@ -28,7 +28,7 @@ namespace StayShare.Controllers
             }
 
             var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
-            if (role != "Owner")
+            if (role != "Owner" && role != "Host")
             {
                 return RedirectToAction("Index1", "Home");
             }
@@ -52,7 +52,7 @@ namespace StayShare.Controllers
             }
 
             var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
-            if (role != "Owner")
+            if (role != "Owner" && role != "Host")
             {
                 return RedirectToAction("Index1", "Home");
             }
@@ -70,7 +70,7 @@ namespace StayShare.Controllers
             }
 
             var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
-            if (role != "Owner")
+            if (role != "Owner" && role != "Host")
             {
                 return RedirectToAction("Index1", "Home");
             }
@@ -126,7 +126,7 @@ namespace StayShare.Controllers
             }
 
             var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
-            if (role != "Owner")
+            if (role != "Owner" && role != "Host")
             {
                 return RedirectToAction("Index1", "Home");
             }
@@ -183,7 +183,7 @@ namespace StayShare.Controllers
             }
 
             var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
-            if (role != "Owner")
+            if (role != "Owner" && role != "Host")
             {
                 return RedirectToAction("Index1", "Home");
             }
@@ -206,7 +206,7 @@ namespace StayShare.Controllers
             }
 
             var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
-            if (role != "Owner")
+            if (role != "Owner" && role != "Host")
             {
                 return RedirectToAction("Index1", "Home");
             }
@@ -230,7 +230,7 @@ namespace StayShare.Controllers
             }
 
             var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
-            if (role != "Owner")
+            if (role != "Owner" && role != "Host")
             {
                 return RedirectToAction("Index1", "Home");
             }
@@ -281,7 +281,7 @@ namespace StayShare.Controllers
             }
 
             var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
-            if (role != "Owner")
+            if (role != "Owner" && role != "Host")
             {
                 return RedirectToAction("Index1", "Home");
             }
@@ -305,7 +305,7 @@ namespace StayShare.Controllers
             }
 
             var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
-            if (role != "Owner")
+            if (role != "Owner" && role != "Host")
             {
                 return RedirectToAction("Index1", "Home");
             }
