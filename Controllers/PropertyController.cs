@@ -237,19 +237,9 @@ namespace StayShare.Controllers
         }
 
         // GET: /Property/Details/5
+        [AllowAnonymous]
         public async Task<IActionResult> Details(int id)
         {
-            if (!User.Identity.IsAuthenticated)
-            {
-                return RedirectToAction("Login", "Auth");
-            }
-
-            var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
-            if (role != "Owner" && role != "Host")
-            {
-                return RedirectToAction("Index1", "Home");
-            }
-
             var property = await _unitOfWork.Properties.GetPropertyByIdAsync(id);
             if (property == null)
             {

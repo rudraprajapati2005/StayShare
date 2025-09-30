@@ -1,0 +1,57 @@
+@model IEnumerable<StayShare.Models.BookingRequest>
+@{
+    ViewData["Title"] = "Incoming Booking Requests";
+}
+
+<div class="min-h-screen bg-gray-100 py-10 px-6">
+    <div class="max-w-5xl mx-auto bg-white shadow rounded p-6">
+        <h1 class="text-2xl font-bold text-gray-800 mb-4">Incoming Booking Requests</h1>
+        @if (Model != null && Model.Any())
+        {
+            <table class="w-full text-sm">
+                <thead>
+                    <tr class="text-left text-gray-600 border-b">
+                        <th class="py-2">Resident</th>
+                        <th>Property</th>
+                        <th>Room</th>
+                        <th>Move-in</th>
+                        <th>Months</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in Model)
+                    {
+                        <tr class="border-b">
+                            <td class="py-2">@r.User?.FullName (@r.User?.Email)</td>
+                            <td>@r.Room?.Property?.Name</td>
+                            <td>@r.Room?.RoomNumber (@r.Room?.RoomType)</td>
+                            <td>@r.MoveInDate.ToString("yyyy-MM-dd")</td>
+                            <td>@r.Months</td>
+                            <td>@r.Status</td>
+                            <td>
+                                @if (r.Status == StayShare.Models.BookingStatus.Pending)
+                                {
+                                    <form method="post" action="/Booking/Approve/@r.BookingRequestId" class="inline">
+                                        <button type="submit" class="px-3 py-1 bg-green-500 text-white rounded">Approve</button>
+                                    </form>
+                                    <form method="post" action="/Booking/Decline/@r.BookingRequestId" class="inline ml-2">
+                                        <button type="submit" class="px-3 py-1 bg-red-500 text-white rounded">Decline</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="text-gray-600">No incoming requests.</div>
+        }
+    </div>
+</div>
+
+
+

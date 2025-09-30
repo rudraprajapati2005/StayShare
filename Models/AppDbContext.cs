@@ -16,6 +16,7 @@ namespace StayShare.Data
         public DbSet<RoomOccupancy> RoomOccupancies { get; set; }
         public DbSet<Property> Properties { get; set; }
         public DbSet<ParentLink> ParentLinks { get; set; }
+        public DbSet<BookingRequest> BookingRequests { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -50,6 +51,16 @@ namespace StayShare.Data
                 .WithMany()
                 .HasForeignKey(pl => pl.ChildId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<BookingRequest>()
+                .HasOne(b => b.Room)
+                .WithMany()
+                .HasForeignKey(b => b.RoomId);
+
+            modelBuilder.Entity<BookingRequest>()
+                .HasOne(b => b.User)
+                .WithMany()
+                .HasForeignKey(b => b.UserId);
         }
     }
 }

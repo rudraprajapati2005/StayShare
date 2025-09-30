@@ -57,7 +57,9 @@ namespace StayShare.Repositories
 
             // Haversine formula in SQL using radians
             // distance_km = 6371 * acos(cos(rad(lat1)) * cos(rad(lat2)) * cos(rad(lon2 - lon1)) + sin(rad(lat1)) * sin(rad(lat2)))
-            var query = _context.Properties.AsQueryable();
+            var query = _context.Properties
+                .Include(p => p.Rooms)
+                .AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(type))
             {

@@ -142,6 +142,16 @@
                                         <a href="/Room/Delete/@room.RoomId" class="text-red-600 hover:text-red-800 text-sm font-medium">
                                             Delete
                                         </a>
+                                        @if (User.Identity.IsAuthenticated)
+                                        {
+                                            var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
+                                            if (string.Equals(role, "Resident", System.StringComparison.OrdinalIgnoreCase))
+                                            {
+                                                <a href="/Booking/Create?roomId=@room.RoomId" class="text-green-600 hover:text-green-800 text-sm font-medium">
+                                                    Request to Book
+                                                </a>
+                                            }
+                                        }
                                     </div>
                                 </div>
                             }
