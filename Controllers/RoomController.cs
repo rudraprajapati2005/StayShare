@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using StayShare.Models;
 using StayShare.Repositories;
 using System.Threading.Tasks;
@@ -18,23 +18,28 @@ namespace StayShare.Controllers
         [HttpGet]
         public async Task<IActionResult> Create(int propertyId)
         {
-            // Check if user is authenticated and has owner role
             if (!User.Identity.IsAuthenticated)
             {
                 return RedirectToAction("Login", "Auth");
             }
 
             var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
-            if (role != "Owner")
+            if (!(role == "Host" || role == "Owner"))
             {
                 return RedirectToAction("Index1", "Home");
             }
 
-            // Get the property to ensure it exists
             var property = await _unitOfWork.Properties.GetPropertyByIdAsync(propertyId);
             if (property == null)
             {
                 return NotFound();
+            }
+
+            // Ensure ownership
+            var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
+            if (!string.Equals(property.OwnerContact?.Trim(), email?.Trim(), System.StringComparison.OrdinalIgnoreCase))
+            {
+                return Forbid();
             }
 
             ViewBag.PropertyId = propertyId;
@@ -46,14 +51,13 @@ namespace StayShare.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(Room model, int propertyId)
         {
-            // Check if user is authenticated and has owner role
             if (!User.Identity.IsAuthenticated)
             {
                 return RedirectToAction("Login", "Auth");
             }
 
             var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
-            if (role != "Owner")
+            if (!(role == "Host" || role == "Owner"))
             {
                 return RedirectToAction("Index1", "Home");
             }
@@ -68,7 +72,18 @@ namespace StayShare.Controllers
 
             try
             {
-                // Set the property ID
+                // Ensure property exists and owned by current user
+                var property = await _unitOfWork.Properties.GetPropertyByIdAsync(propertyId);
+                if (property == null)
+                {
+                    return NotFound();
+                }
+                var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
+                if (!string.Equals(property.OwnerContact?.Trim(), email?.Trim(), System.StringComparison.OrdinalIgnoreCase))
+                {
+                    return Forbid();
+                }
+
                 model.PropertyId = propertyId;
 
                 await _unitOfWork.Rooms.AddRoomAsync(model);
@@ -77,7 +92,7 @@ namespace StayShare.Controllers
                 TempData["SuccessMessage"] = "Room created successfully!";
                 return RedirectToAction("Details", "Property", new { id = propertyId });
             }
-            catch (System.Exception ex)
+            catch
             {
                 ModelState.AddModelError("", "An error occurred while creating the room. Please try again.");
                 ViewBag.PropertyId = propertyId;
@@ -96,7 +111,7 @@ namespace StayShare.Controllers
             }
 
             var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
-            if (role != "Owner")
+            if (!(role == "Host" || role == "Owner"))
             {
                 return RedirectToAction("Index1", "Home");
             }
@@ -105,6 +120,14 @@ namespace StayShare.Controllers
             if (room == null)
             {
                 return NotFound();
+            }
+
+            // Ensure ownership of room's property
+            var property = await _unitOfWork.Properties.GetPropertyByIdAsync(room.PropertyId);
+            var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
+            if (!string.Equals(property?.OwnerContact?.Trim(), email?.Trim(), System.StringComparison.OrdinalIgnoreCase))
+            {
+                return Forbid();
             }
 
             return View(room);
@@ -120,7 +143,7 @@ namespace StayShare.Controllers
             }
 
             var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
-            if (role != "Owner")
+            if (!(role == "Host" || role == "Owner"))
             {
                 return RedirectToAction("Index1", "Home");
             }
@@ -137,14 +160,20 @@ namespace StayShare.Controllers
 
             try
             {
-                // Get existing room to preserve property relationship
                 var existingRoom = await _unitOfWork.Rooms.GetRoomByIdAsync(id);
                 if (existingRoom == null)
                 {
                     return NotFound();
                 }
 
-                // Update room details
+                // Ensure ownership
+                var property = await _unitOfWork.Properties.GetPropertyByIdAsync(existingRoom.PropertyId);
+                var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
+                if (!string.Equals(property?.OwnerContact?.Trim(), email?.Trim(), System.StringComparison.OrdinalIgnoreCase))
+                {
+                    return Forbid();
+                }
+
                 existingRoom.RoomNumber = model.RoomNumber;
                 existingRoom.RoomType = model.RoomType;
                 existingRoom.RentPerMonth = model.RentPerMonth;
@@ -154,10 +183,11 @@ namespace StayShare.Controllers
 
                 await _unitOfWork.Rooms.UpdateRoomAsync(existingRoom);
                 await _unitOfWork.CommitAsync();
+
                 TempData["SuccessMessage"] = "Room updated successfully!";
                 return RedirectToAction("Details", "Property", new { id = existingRoom.PropertyId });
             }
-            catch (System.Exception ex)
+            catch
             {
                 ModelState.AddModelError("", "An error occurred while updating the room. Please try again.");
                 return View(model);
@@ -173,7 +203,7 @@ namespace StayShare.Controllers
             }
 
             var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
-            if (role != "Owner")
+            if (!(role == "Host" || role == "Owner"))
             {
                 return RedirectToAction("Index1", "Home");
             }
@@ -182,6 +212,14 @@ namespace StayShare.Controllers
             if (room == null)
             {
                 return NotFound();
+            }
+
+            // Ensure ownership
+            var property = await _unitOfWork.Properties.GetPropertyByIdAsync(room.PropertyId);
+            var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
+            if (!string.Equals(property?.OwnerContact?.Trim(), email?.Trim(), System.StringComparison.OrdinalIgnoreCase))
+            {
+                return Forbid();
             }
 
             return View(room);
@@ -197,7 +235,7 @@ namespace StayShare.Controllers
             }
 
             var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
-            if (role != "Owner")
+            if (!(role == "Host" || role == "Owner"))
             {
                 return RedirectToAction("Index1", "Home");
             }
@@ -207,13 +245,21 @@ namespace StayShare.Controllers
                 var room = await _unitOfWork.Rooms.GetRoomByIdAsync(id);
                 if (room != null)
                 {
+                    // Ensure ownership
+                    var property = await _unitOfWork.Properties.GetPropertyByIdAsync(room.PropertyId);
+                    var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
+                    if (!string.Equals(property?.OwnerContact?.Trim(), email?.Trim(), System.StringComparison.OrdinalIgnoreCase))
+                    {
+                        return Forbid();
+                    }
+
                     await _unitOfWork.Rooms.DeleteRoomAsync(id);
                     await _unitOfWork.CommitAsync();
                     TempData["SuccessMessage"] = "Room deleted successfully!";
                 }
                 return RedirectToAction("Details", "Property", new { id = room?.PropertyId });
             }
-            catch (System.Exception ex)
+            catch
             {
                 TempData["ErrorMessage"] = "An error occurred while deleting the room.";
                 return RedirectToAction("Index", "Property");

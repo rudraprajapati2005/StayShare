@@ -1,0 +1,29 @@
+@model StayShare.Models.Room
+@{
+    ViewData["Title"] = "Delete Room";
+}
+
+<div class="min-h-screen bg-gray-100 py-10 px-6">
+    <div class="max-w-xl mx-auto bg-white shadow-md rounded-lg p-8">
+        <h1 class="text-2xl font-bold text-red-600 mb-4">Delete Room</h1>
+        <p class="text-gray-700 mb-6">Are you sure you want to delete room <strong>@Model.RoomNumber</strong> of <strong>@Model.Property?.Name</strong>?</p>
+
+        <dl class="mb-6 text-sm text-gray-700">
+            <dd><strong>Type:</strong> @Model.RoomType</dd>
+            <dd><strong>Rent/Month:</strong> ₹@Model.RentPerMonth</dd>
+            <dd><strong>Capacity:</strong> @Model.Capacity</dd>
+            @if (!string.IsNullOrEmpty(Model.Amenities)) { <dd><strong>Amenities:</strong> @Model.Amenities</dd> }
+        </dl>
+
+        <form asp-action="Delete" method="post">
+            <input type="hidden" asp-for="RoomId" />
+            <div class="flex space-x-3">
+                <a href="/Property/Details/@Model.PropertyId" class="px-4 py-2 border border-gray-300 rounded">Cancel</a>
+                <button type="submit" class="px-4 py-2 bg-red-600 text-white rounded">Delete</button>
+            </div>
+        </form>
+    </div>
+    
+</div>
+
+

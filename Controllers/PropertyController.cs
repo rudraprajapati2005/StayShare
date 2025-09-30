@@ -6,6 +6,7 @@ using StayShare.Models;
 using StayShare.Repositories;
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace StayShare.Controllers
