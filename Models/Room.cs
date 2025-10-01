@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace StayShare.Models
 {
@@ -7,6 +8,8 @@ namespace StayShare.Models
         public int RoomId { get; set; }
         public string RoomNumber { get; set; } // e.g., "101", "B2"
         public string RoomType { get; set; } // "Single", "Double", "Triple", etc.
+       
+        [Column(TypeName = "decimal(10,2)")]
         public decimal RentPerMonth { get; set; }
         public int Capacity { get; set; }
         public string Amenities { get; set; } // Optional amenities for the room

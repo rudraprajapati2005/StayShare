@@ -1,6 +1,20 @@
 @model StayShare.Models.Property
 @{
     ViewData["Title"] = "Property Details";
+    
+    // Declare variables at the top level
+    var role = "";
+    var currentEmail = "";
+    var isOwner = false;
+    
+    if (User.Identity.IsAuthenticated)
+    {
+        role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
+        currentEmail = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
+        isOwner = (string.Equals(role, "Owner", System.StringComparison.OrdinalIgnoreCase) || 
+                  string.Equals(role, "Host", System.StringComparison.OrdinalIgnoreCase)) &&
+                  string.Equals(Model.OwnerContact?.Trim(), currentEmail?.Trim(), System.StringComparison.OrdinalIgnoreCase);
+    }
 }
 
 <div class="min-h-screen bg-gray-100 py-10 px-6">
@@ -12,19 +26,53 @@
                 <p class="text-gray-600 mt-2">Property Details & Room Management</p>
             </div>
             <div class="flex space-x-3">
-                <a href="/Room/Create?propertyId=@Model.PropertyId" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-medium transition flex items-center">
-                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                    </svg>
-                    Add Room
-                </a>
-              
-                <a href="/Property/Edit/@Model.PropertyId" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition">
-                    Edit Property
-                </a>
-                <a href="/Property" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium transition">
-                    Back to Properties
-                </a>
+                    @if (User.Identity.IsAuthenticated)
+                    {
+                        @if (string.Equals(role, "Owner", System.StringComparison.OrdinalIgnoreCase) || 
+                             string.Equals(role, "Host", System.StringComparison.OrdinalIgnoreCase))
+                        {
+                            @if (string.Equals(Model.OwnerContact?.Trim(), currentEmail?.Trim(), System.StringComparison.OrdinalIgnoreCase))
+                            {
+                                <!-- Owner Actions -->
+                                <a href="/Room/Create?propertyId=@Model.PropertyId" class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-medium transition flex items-center">
+                                    <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                    </svg>
+                                    Add Room
+                                </a>
+                                <a href="/Property/Edit/@Model.PropertyId" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition">
+                                    Edit Property
+                                </a>
+                                <a href="/Property" class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-medium transition">
+                                    My Properties
+                                </a>
+                            }
+                            else
+                            {
+                                <!-- Non-owner viewing someone else's property -->
+                                <a href="/Property/Search" class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-medium transition">
+                                    Find More Properties
+                                </a>
+                            }
+                        }
+                        else
+                        {
+                            <!-- Resident/Guardian viewing property -->
+                            <a href="/Property/Search" class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-medium transition">
+                                Find More Properties
+                            </a>
+                        }
+                    }
+                else
+                {
+                    <!-- Not logged in -->
+                    <a href="/Auth/Login" class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-medium transition">
+                        Login to Book
+                    </a>
+                    <a href="/Property/Search" class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-medium transition">
+                        Find Properties
+                    </a>
+                }
             </div>
         </div>
 
@@ -111,7 +159,17 @@
             <!-- Rooms Section -->
             <div class="lg:col-span-1">
                 <div class="bg-white rounded-lg shadow-md p-6">
-                    <h3 class="text-xl font-semibold text-gray-900 mb-4">Rooms (@(Model.Rooms?.Count ?? 0))</h3>
+                    
+                    <h3 class="text-xl font-semibold text-gray-900 mb-4">
+                        @if (isOwner)
+                        {
+                            <span>Rooms (@(Model.Rooms?.Count ?? 0))</span>
+                        }
+                        else
+                        {
+                            <span>Available Rooms (@(Model.Rooms?.Count(r => r.IsAvailable) ?? 0))</span>
+                        }
+                    </h3>
                     
                     @if (Model.Rooms != null && Model.Rooms.Any())
                     {
@@ -121,9 +179,23 @@
                                 <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                                     <div class="flex justify-between items-start mb-2">
                                         <h4 class="font-medium text-gray-900">Room @room.RoomNumber</h4>
-                                        <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded">
-                                            @room.RoomType
-                                        </span>
+                                        <div class="flex space-x-2">
+                                            <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded">
+                                                @room.RoomType
+                                            </span>
+                                            @if (room.IsAvailable)
+                                            {
+                                                <span class="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded">
+                                                    Available
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                <span class="bg-red-100 text-red-800 text-xs font-medium px-2 py-1 rounded">
+                                                    Occupied
+                                                </span>
+                                            }
+                                        </div>
                                     </div>
                                     
                                     <div class="text-sm text-gray-600 space-y-1">
@@ -136,21 +208,32 @@
                                     </div>
                                     
                                     <div class="flex space-x-2 mt-3">
-                                        <a href="/Room/Edit/@room.RoomId" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
-                                            Edit
-                                        </a>
-                                        <a href="/Room/Delete/@room.RoomId" class="text-red-600 hover:text-red-800 text-sm font-medium">
-                                            Delete
-                                        </a>
-                                        @if (User.Identity.IsAuthenticated)
+                                        @if (isOwner)
                                         {
-                                            var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
+                                            <!-- Owner can edit/delete rooms -->
+                                            <a href="/Room/Edit/@room.RoomId" class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                                                Edit
+                                            </a>
+                                            <a href="/Room/Delete/@room.RoomId" class="text-red-600 hover:text-red-800 text-sm font-medium">
+                                                Delete
+                                            </a>
+                                        }
+                                        else if (User.Identity.IsAuthenticated && room.IsAvailable)
+                                        {
+                                            <!-- Other users can book available rooms -->
                                             if (string.Equals(role, "Resident", System.StringComparison.OrdinalIgnoreCase))
                                             {
-                                                <a href="/Booking/Create?roomId=@room.RoomId" class="text-green-600 hover:text-green-800 text-sm font-medium">
+                                                <a href="/Booking/Create?roomId=@room.RoomId" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm font-medium transition">
                                                     Request to Book
                                                 </a>
                                             }
+                                        }
+                                        else if (!User.Identity.IsAuthenticated && room.IsAvailable)
+                                        {
+                                            <!-- Not logged in users see login prompt -->
+                                            <a href="/Auth/Login" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm font-medium transition">
+                                                Login to Book
+                                            </a>
                                         }
                                     </div>
                                 </div>
@@ -163,32 +246,56 @@
                             <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                             </svg>
-                            <h4 class="mt-2 text-sm font-medium text-gray-900">No rooms yet</h4>
-                            <p class="mt-1 text-sm text-gray-500">Add rooms to this property to get started.</p>
-                            <div class="mt-4">
-                                <a href="/Room/Create?propertyId=@Model.PropertyId" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm font-medium transition">
-                                    Add First Room
-                                </a>
-                            </div>
+                            @if (isOwner)
+                            {
+                                <h4 class="mt-2 text-sm font-medium text-gray-900">No rooms yet</h4>
+                                <p class="mt-1 text-sm text-gray-500">Add rooms to this property to get started.</p>
+                                <div class="mt-4">
+                                    <a href="/Room/Create?propertyId=@Model.PropertyId" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded text-sm font-medium transition">
+                                        Add First Room
+                                    </a>
+                                </div>
+                            }
+                            else
+                            {
+                                <h4 class="mt-2 text-sm font-medium text-gray-900">No rooms available</h4>
+                                <p class="mt-1 text-sm text-gray-500">This property doesn't have any rooms listed yet.</p>
+                                <div class="mt-4">
+                                    <a href="/Property/Search" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded text-sm font-medium transition">
+                                        Find Other Properties
+                                    </a>
+                                </div>
+                            }
                         </div>
                     }
                     
                 </div>
-                     <div class="lg:col-span-1 mt-8">
-                     <div class="bg-white rounded-lg shadow-md p-6">
-                            <form  asp-action = "changeThumbnail" asp-controller="property" method ="post" enctype="multidata/form-data" class="max-w-sm mx-auto bg-white p-6 rounded-lg shadow-md">
-                                 <div class="mb-4">
-                                      <label for="Photo" class="block text-gray-700 font-medium mb-2">Change Thumbnail</label>
-                                      <input type="file" name="Photo" id="Photo" accept="image/*"
-                                         class="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                    @if (isOwner)
+                    {
+                        <!-- Thumbnail Section - Only for Owners -->
+                        <div class="lg:col-span-1 mt-8">
+                            <div class="bg-white rounded-lg shadow-md p-6">
+                                <h3 class="text-lg font-semibold text-gray-900 mb-4">Change Thumbnail</h3>
+                                @if (!string.IsNullOrEmpty(Model.ThumbnailCoverPath))
+                                {
+                                    <div class="mb-4">
+                                        <img src="@Model.ThumbnailCoverPath" alt="@Model.Name" class="h-32 w-full object-cover rounded border" />
+                                    </div>
+                                }
+                                <form asp-action="ChangeThumbnail" asp-controller="Property" asp-route-id="@Model.PropertyId" method="post" enctype="multipart/form-data" class="space-y-4">
+                                    <div>
+                                        <label for="ThumbnailCover" class="block text-gray-700 font-medium mb-2">Select New Image</label>
+                                        <input type="file" name="ThumbnailCover" id="ThumbnailCover" accept="image/*"
+                                           class="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                                </div>
+                                <button type="submit"
+                class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
+            Upload New Thumbnail
+        </button>
+                                </form>
                             </div>
-                            <button type="submit"
-            class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">
-        Upload
-    </button>
-                            </form>
                         </div>
-                    </div>
+                    }
             </div>
         </div>
     </div>

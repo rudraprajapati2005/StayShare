@@ -126,7 +126,7 @@ namespace StayShare.Controllers
 
             // Capacity check
             var room = await _unitOfWork.Rooms.GetRoomByIdAsync(req.RoomId);
-            var occupants = (await _unitOfWork.Occupancies.GetRoomOccupanciesAsync(req.RoomId))?.Count(o => o.IsActive) ?? 0;
+            var occupants = (await _unitOfWork.Occupancies.GetOccupanciesByRoomIdAsync(req.RoomId))?.Count(o => o.IsActive) ?? 0;
             if (occupants >= room.Capacity)
             {
                 TempData["ErrorMessage"] = "Room is full.";
@@ -141,7 +141,7 @@ namespace StayShare.Controllers
                 RequestedAt = req.CreatedAt,
                 JoinedAt = req.MoveInDate,
                 IsActive = true,
-                Status = (int)OccupancyStatus.Accepted
+                Status = OccupancyStatus.Accepted
             });
 
             req.Status = BookingStatus.Accepted;
