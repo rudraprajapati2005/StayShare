@@ -34,17 +34,22 @@ namespace StayShare
             services.AddScoped<IPropertyRepository, PropertyRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IOccupancyRepository, OccupancyRepository>();
+            services.AddScoped<IBookingRepository, BookingRepository>();
 
             // Register Unit of Work
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options =>
-    {
-        options.LoginPath = "/Auth/Login";       // where to redirect if not logged in
-        options.LogoutPath = "/Auth/Logout";     // logout URL
-        options.AccessDeniedPath = "/Auth/AccessDenied"; // optional
-        options.ExpireTimeSpan = TimeSpan.FromDays(7);   // optional
-    });
+                .AddCookie(options =>
+                {
+                    options.LoginPath = "/Auth/Login";       // where to redirect if not logged in
+                    options.LogoutPath = "/Auth/Logout";     // logout URL
+                    options.AccessDeniedPath = "/Auth/AccessDenied"; // optional
+                    options.SlidingExpiration = true;
+                    options.ExpireTimeSpan = TimeSpan.FromHours(12);
+                    options.Cookie.HttpOnly = true;
+                    options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
+                    options.Cookie.SecurePolicy = Microsoft.AspNetCore.Http.CookieSecurePolicy.Always;
+                });
 
             services.AddAuthorization();
             // Optional: add session or caching if required later

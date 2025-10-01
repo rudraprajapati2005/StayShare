@@ -50,8 +50,8 @@
                     <textarea asp-for="Address" rows="3" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-orange-500 mt-2" placeholder="Enter full address"></textarea>
                     <span asp-validation-for="Address" class="text-red-500 text-sm"></span>
                     <div class="mt-2 flex flex-wrap gap-2">
-                        <button type="button" id="set-nadiad" class="px-3 py-1 bg-green-500 text-white text-sm rounded hover:bg-green-600">
-                            🏠 Know your location
+                        <button type="button" id="use-gps" class="px-3 py-1 bg-green-500 text-white text-sm rounded hover:bg-green-600">
+                            📍 Use My Location
                         </button>
                         <button type="button" id="debug-location" class="px-3 py-1 bg-purple-500 text-white text-sm rounded hover:bg-purple-600">
                             🔍 Debug Location
@@ -96,15 +96,20 @@
 
                 <!-- Latitude -->
                 <div>
-                    <label asp-for="Latitude" class="block text-sm font-medium text-gray-700 mb-2">Latitude</label>
-                    <input asp-for="Latitude" type="number" step="any" readonly class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100" placeholder="0.0" />
+                    <div class="flex items-center justify-between">
+                        <label asp-for="Latitude" class="block text-sm font-medium text-gray-700 mb-2">Latitude</label>
+                        <label class="text-xs text-gray-600 flex items-center gap-2">
+                            <input type="checkbox" id="manual-coords" class="rounded" /> Enter manually
+                        </label>
+                    </div>
+                    <input asp-for="Latitude" id="lat-input" type="number" step="any" readonly class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100" placeholder="0.0" />
                     <span asp-validation-for="Latitude" class="text-red-500 text-sm"></span>
                 </div>
 
                 <!-- Longitude -->
                 <div>
                     <label asp-for="Longitude" class="block text-sm font-medium text-gray-700 mb-2">Longitude</label>
-                    <input asp-for="Longitude" type="number" step="any" readonly class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100" placeholder="0.0" />
+                    <input asp-for="Longitude" id="lng-input" type="number" step="any" readonly class="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100" placeholder="0.0" />
                     <span asp-validation-for="Longitude" class="text-red-500 text-sm"></span>
                 </div>
 
@@ -196,9 +201,12 @@
         function setupEventListeners() {
             const addressSearch = document.getElementById('address-search');
             const suggestionsDiv = document.getElementById('address-suggestions');
-            const setNadiadBtn = document.getElementById('set-nadiad');
+            const useGpsBtn = document.getElementById('use-gps');
             const debugLocationBtn = document.getElementById('debug-location');
             const clearLocationBtn = document.getElementById('clear-location');
+            const manualToggle = document.getElementById('manual-coords');
+            const latInput = document.getElementById('lat-input');
+            const lngInput = document.getElementById('lng-input');
 
             // Address search with suggestions
             addressSearch.addEventListener('input', function() {
@@ -210,14 +218,29 @@
                 }
             });
 
-            // Know your location (Nadiad)
-            setNadiadBtn.addEventListener('click', setNadiadLocation);
+            // Use GPS
+            if (useGpsBtn) {
+                useGpsBtn.addEventListener('click', useMyLocation);
+            }
 
             // Debug location
             debugLocationBtn.addEventListener('click', debugLocation);
 
             // Clear location
             clearLocationBtn.addEventListener('click', clearLocation);
+
+            // Manual coords
+            if (manualToggle) {
+                manualToggle.addEventListener('change', () => {
+                    const enabled = manualToggle.checked;
+                    latInput.readOnly = !enabled;
+                    lngInput.readOnly = !enabled;
+                    latInput.classList.toggle('bg-gray-100', !enabled);
+                    lngInput.classList.toggle('bg-gray-100', !enabled);
+                });
+                latInput.addEventListener('input', updateFromManual);
+                lngInput.addEventListener('input', updateFromManual);
+            }
 
             // Hide suggestions when clicking outside
             document.addEventListener('click', function(e) {
@@ -278,30 +301,15 @@
             });
         }
 
-        function setNadiadLocation() {
-            // Set Nadiad coordinates (approximate center of Nadiad, Gujarat)
-            const nadiadLat = 22.6938;
-            const nadiadLng = 72.8615;
-            
-            // Geocode Nadiad to get proper address
-            geocoder.geocode({ location: { lat: nadiadLat, lng: nadiadLng } }, function(results, status) {
-                if (status === 'OK' && results[0]) {
-                    const addressSearch = document.getElementById('address-search');
-                    addressSearch.value = results[0].formatted_address;
-                    updateLocationData(results[0]);
-                    console.log('Nadiad location set:', results[0].formatted_address);
-                } else {
-                    // Fallback: manually set Nadiad data
-                    document.getElementById('address-search').value = 'Nadiad, Gujarat, India';
-                    document.querySelector('textarea[name="Address"]').value = 'Nadiad, Gujarat, India';
-                    document.querySelector('input[name="City"]').value = 'Nadiad';
-                    document.querySelector('input[name="State"]').value = 'Gujarat';
-                    document.querySelector('input[name="Latitude"]').value = nadiadLat;
-                    document.querySelector('input[name="Longitude"]').value = nadiadLng;
-                    updateMap(nadiadLat, nadiadLng);
-                    console.log('Nadiad location set manually');
-                }
-            });
+        function useMyLocation() {
+            if (!navigator.geolocation) { alert('Geolocation not supported'); return; }
+            navigator.geolocation.getCurrentPosition(function(pos) {
+                const lat = pos.coords.latitude;
+                const lng = pos.coords.longitude;
+                reverseGeocodeAndFill(lat, lng);
+            }, function(err) {
+                alert('Failed to get current location: ' + err.message);
+            }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
         }
 
         function debugLocation() {
@@ -395,6 +403,8 @@
             document.querySelector('input[name="Latitude"]').value = lat;
             document.querySelector('input[name="Longitude"]').value = lng;
             document.querySelector('textarea[name="Address"]').value = address;
+            document.getElementById('lat-input').value = lat;
+            document.getElementById('lng-input').value = lng;
 
             // Extract city and state from address components
             const addressComponents = place.address_components;
@@ -415,6 +425,37 @@
 
             // Update map
             updateMap(lat, lng);
+        }
+
+        function reverseGeocodeAndFill(lat, lng) {
+            if (!geocoder) return;
+            geocoder.geocode({ location: { lat: lat, lng: lng } }, function(results, status) {
+                if (status === 'OK' && results[0]) {
+                    const result = results[0];
+                    updateLocationData({
+                        geometry: { location: { lat: () => lat, lng: () => lng } },
+                        formatted_address: result.formatted_address,
+                        address_components: result.address_components
+                    });
+                    document.getElementById('address-search').value = result.formatted_address;
+                } else {
+                    document.querySelector('input[name="Latitude"]').value = lat;
+                    document.querySelector('input[name="Longitude"]').value = lng;
+                    document.getElementById('lat-input').value = lat;
+                    document.getElementById('lng-input').value = lng;
+                    updateMap(lat, lng);
+                }
+            });
+        }
+
+        function updateFromManual() {
+            const latVal = parseFloat(document.getElementById('lat-input').value);
+            const lngVal = parseFloat(document.getElementById('lng-input').value);
+            if (isFinite(latVal) && isFinite(lngVal)) {
+                document.querySelector('input[name="Latitude"]').value = latVal;
+                document.querySelector('input[name="Longitude"]').value = lngVal;
+                updateMap(latVal, lngVal);
+            }
         }
 
         function updateMap(lat, lng) {

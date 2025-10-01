@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using StayShare.Models;
 using StayShare.Repositories;
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace StayShare.Controllers
@@ -38,6 +40,56 @@ namespace StayShare.Controllers
             var properties = await _unitOfWork.Properties.GetPropertiesByOwnerEmailAsync(email);
             
             return View(properties);
+        }
+
+        // GET: /Property/Search
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult Search()
+        {
+            return View();
+        }
+
+        // POST: /Property/Search
+        [HttpPost]
+        [AllowAnonymous]
+        public async Task<IActionResult> Search(double? latitude, double? longitude, string city, string type, string category, double? radiusKm)
+        {
+            double lat;
+            double lng;
+            double rad = radiusKm ?? 5;
+
+            if (latitude.HasValue && longitude.HasValue)
+            {
+                lat = latitude.Value;
+                lng = longitude.Value;
+            }
+            else if (!string.IsNullOrWhiteSpace(city))
+            {
+                // Basic fallback: try to map city using existing properties average
+                var all = await _unitOfWork.Properties.GetAllPropertiesAsync();
+                var cityProps = all.Where(p => string.Equals(p.City, city, System.StringComparison.OrdinalIgnoreCase)).ToList();
+                if (!cityProps.Any())
+                {
+                    ModelState.AddModelError("", "No coordinates found for city. Please allow GPS or enter coordinates.");
+                    return View();
+                }
+                lat = cityProps.Average(p => p.Latitude);
+                lng = cityProps.Average(p => p.Longitude);
+            }
+            else
+            {
+                ModelState.AddModelError("", "Provide city or coordinates.");
+                return View();
+            }
+
+            var results = await _unitOfWork.Properties.GetNearbyPropertiesAsync(lat, lng, rad, type, category);
+            ViewBag.SearchLat = lat;
+            ViewBag.SearchLng = lng;
+            ViewBag.RadiusKm = rad;
+            ViewBag.Type = type;
+            ViewBag.Category = category;
+            return View("SearchResults", results);
         }
 
         // GET: /Property/Create
@@ -185,19 +237,9 @@ namespace StayShare.Controllers
         }
 
         // GET: /Property/Details/5
+        [AllowAnonymous]
         public async Task<IActionResult> Details(int id)
         {
-            if (!User.Identity.IsAuthenticated)
-            {
-                return RedirectToAction("Login", "Auth");
-            }
-
-            var role = User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value ?? "";
-            if (role != "Owner" && role != "Host")
-            {
-                return RedirectToAction("Index1", "Home");
-            }
-
             var property = await _unitOfWork.Properties.GetPropertyByIdAsync(id);
             if (property == null)
             {

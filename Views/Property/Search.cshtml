@@ -1,0 +1,192 @@
+@{
+    ViewData["Title"] = "Find Stays";
+}
+
+<div class="min-h-screen bg-gray-100 py-10 px-6">
+    <div class="max-w-5xl mx-auto">
+        <div class="bg-white shadow-md rounded-lg p-6 mb-4">
+            <h1 class="text-2xl font-bold text-orange-600 mb-4">Find Stays Near You</h1>
+
+            <form asp-controller="Property" asp-action="Search" method="post" class="space-y-4">
+                <input type="hidden" id="latitude" name="latitude" />
+                <input type="hidden" id="longitude" name="longitude" />
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                        <div class="relative">
+                            <input id="location-input" name="city" class="w-full px-3 py-2 border border-gray-300 rounded-md" placeholder="Search a city or area (e.g., Nadiad, Sector 62)" />
+                            <div id="location-suggestions" class="absolute z-10 w-full bg-white border border-gray-300 rounded-md shadow-lg hidden max-h-56 overflow-y-auto"></div>
+                        </div>
+                        <div class="mt-2 flex gap-2">
+                            <button type="button" id="use-gps" class="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">Use My Location</button>
+                            <button type="button" id="drop-pin" class="px-3 py-1 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">Drop Pin on Map</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Radius</label>
+                        <select name="radiusKm" id="radiusKm" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            <option value="2">Within 2 km</option>
+                            <option value="5" selected>Within 5 km</option>
+                            <option value="10">Within 10 km</option>
+                            <option value="15">Within 15 km</option>
+                        </select>
+                        <div class="mt-2 flex flex-wrap gap-2 text-xs items-center">
+                            <button type="button" class="radius-chip px-2 py-1 bg-gray-100 rounded" data-r="2">2 km</button>
+                            <button type="button" class="radius-chip px-2 py-1 bg-gray-100 rounded" data-r="5">5 km</button>
+                            <button type="button" class="radius-chip px-2 py-1 bg-gray-100 rounded" data-r="10">10 km</button>
+                            <button type="button" class="radius-chip px-2 py-1 bg-gray-100 rounded" data-r="15">15 km</button>
+                            <span class="ml-2 text-gray-500">or</span>
+                            <input type="number" min="0.5" step="0.5" id="customRadius" class="ml-2 w-28 px-2 py-1 border border-gray-300 rounded" placeholder="Custom km" />
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">Tip: Enter a custom radius (e.g., 3.5) to override the presets.</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Property Type</label>
+                        <select name="type" id="type" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            <option value="">Any</option>
+                            <option value="PG">PG</option>
+                            <option value="Hostel">Hostel</option>
+                            <option value="Hotel">Hotel</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">PG Category</label>
+                        <select name="category" id="category" class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                            <option value="">Any</option>
+                            <option value="Male">Boys</option>
+                            <option value="Female">Girls</option>
+                            <option value="Unisex">Unisex</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <div id="search-map" class="w-full h-64 border border-gray-300 rounded-md bg-gray-100 flex items-center justify-center">
+                        <span class="text-gray-500">Map will appear here. You can drag the pin to adjust location.</span>
+                    </div>
+                </div>
+
+                <div class="flex justify-end pt-2">
+                    <button type="submit" class="px-6 py-2 bg-orange-500 text-white rounded-md hover:bg-orange-600">Search</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAbos3cdzv_-lMRsxb21oG20_xenAwN34Q&libraries=places"></script>
+<script>
+let gmap, gmarker, geocoder, autocompleteService;
+
+document.addEventListener('DOMContentLoaded', initSearchUI);
+
+function initSearchUI() {
+    geocoder = new google.maps.Geocoder();
+    autocompleteService = new google.maps.places.AutocompleteService();
+    const mapEl = document.getElementById('search-map');
+    gmap = new google.maps.Map(mapEl, {
+        center: { lat: 20.5937, lng: 78.9629 },
+        zoom: 5,
+        mapTypeId: google.maps.MapTypeId.ROADMAP
+    });
+
+    document.getElementById('use-gps').addEventListener('click', useGps);
+    document.getElementById('drop-pin').addEventListener('click', dropPinAtCenter);
+    document.querySelectorAll('.radius-chip').forEach(chip => chip.addEventListener('click', (e) => {
+        document.getElementById('radiusKm').value = e.target.getAttribute('data-r');
+    }));
+
+    const custom = document.getElementById('customRadius');
+    if (custom) {
+        custom.addEventListener('input', () => {
+            const v = parseFloat(custom.value);
+            if (isFinite(v) && v > 0) {
+                document.getElementById('radiusKm').value = v;
+            }
+        });
+    }
+
+    const input = document.getElementById('location-input');
+    const suggestions = document.getElementById('location-suggestions');
+    input.addEventListener('input', () => {
+        const q = input.value.trim();
+        if (q.length < 3) { suggestions.classList.add('hidden'); suggestions.innerHTML = ''; return; }
+        autocompleteService.getPlacePredictions({ input: q }, (preds, status) => {
+            suggestions.innerHTML = '';
+            if (status !== google.maps.places.PlacesServiceStatus.OK || !preds) { suggestions.classList.add('hidden'); return; }
+            preds.forEach(p => {
+                const div = document.createElement('div');
+                div.className = 'p-2 hover:bg-gray-100 cursor-pointer border-b';
+                div.textContent = p.description;
+                div.addEventListener('click', () => selectPrediction(p));
+                suggestions.appendChild(div);
+            });
+            suggestions.classList.remove('hidden');
+        });
+    });
+    document.addEventListener('click', (e) => {
+        if (!suggestions.contains(e.target) && e.target !== input) suggestions.classList.add('hidden');
+    });
+}
+
+function selectPrediction(pred) {
+    const suggestions = document.getElementById('location-suggestions');
+    const input = document.getElementById('location-input');
+    input.value = pred.description;
+    suggestions.classList.add('hidden');
+    geocoder.geocode({ placeId: pred.place_id }, (results, status) => {
+        if (status === 'OK' && results[0]) {
+            const r = results[0];
+            const lat = r.geometry.location.lat();
+            const lng = r.geometry.location.lng();
+            setMapPoint(lat, lng);
+            document.getElementById('latitude').value = lat;
+            document.getElementById('longitude').value = lng;
+        }
+    });
+}
+
+function useGps() {
+    if (!navigator.geolocation) { alert('Geolocation not supported'); return; }
+    navigator.geolocation.getCurrentPosition((pos) => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        setMapPoint(lat, lng);
+        document.getElementById('latitude').value = lat;
+        document.getElementById('longitude').value = lng;
+    }, (err) => {
+        alert('Failed to get location: ' + err.message);
+    }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
+}
+
+function dropPinAtCenter() {
+    const c = gmap.getCenter();
+    setMapPoint(c.lat(), c.lng());
+    document.getElementById('latitude').value = c.lat();
+    document.getElementById('longitude').value = c.lng();
+}
+
+function setMapPoint(lat, lng) {
+    gmap.setCenter({ lat, lng });
+    gmap.setZoom(14);
+    if (!gmarker) {
+        gmarker = new google.maps.Marker({ position: { lat, lng }, map: gmap, draggable: true });
+        gmarker.addListener('dragend', () => {
+            const p = gmarker.getPosition();
+            document.getElementById('latitude').value = p.lat();
+            document.getElementById('longitude').value = p.lng();
+        });
+    } else {
+        gmarker.setPosition({ lat, lng });
+    }
+}
+</script>
+}
+
+
