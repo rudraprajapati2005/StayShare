@@ -205,6 +205,20 @@
                                         {
                                             <p><strong>Amenities:</strong> @room.Amenities</p>
                                         }
+                                        @{
+                                            var roomToCurrent = ViewBag.RoomToCurrent as System.Collections.Generic.Dictionary<int, System.Collections.Generic.List<StayShare.Models.User>>;
+                                            var roomToUpcoming = ViewBag.RoomToUpcoming as System.Collections.Generic.Dictionary<int, System.Collections.Generic.List<(StayShare.Models.User user, System.DateTime? startDate)>>;
+                                            var roomToViewerStatus = ViewBag.RoomToViewerStatus as System.Collections.Generic.Dictionary<int, string>;
+                                            var current = roomToCurrent != null && roomToCurrent.ContainsKey(room.RoomId) ? roomToCurrent[room.RoomId] : new System.Collections.Generic.List<StayShare.Models.User>();
+                                            var upcoming = roomToUpcoming != null && roomToUpcoming.ContainsKey(room.RoomId) ? roomToUpcoming[room.RoomId] : new System.Collections.Generic.List<(StayShare.Models.User, System.DateTime?)>();
+                                            var viewerStatus = roomToViewerStatus != null && roomToViewerStatus.ContainsKey(room.RoomId) ? roomToViewerStatus[room.RoomId] : null;
+                                        }
+                                        @if (!string.IsNullOrEmpty(viewerStatus))
+                                        {
+                                            <p class="text-green-700"><strong>@viewerStatus</strong></p>
+                                        }
+                                        <p><strong>Current residents:</strong> @(current.Any() ? string.Join(", ", current.Select(u => u.FullName)) : "None")</p>
+                                        <p><strong>Upcoming:</strong> @(upcoming.Any() ? string.Join(", ", upcoming.Select(u => $"{u.Item1.FullName} ({(u.Item2.HasValue ? u.Item2.Value.ToString("yyyy-MM-dd") : "")})")) : "None")</p>
                                     </div>
                                     
                                     <div class="flex space-x-2 mt-3">
@@ -216,6 +230,9 @@
                                             </a>
                                             <a href="/Room/Delete/@room.RoomId" class="text-red-600 hover:text-red-800 text-sm font-medium">
                                                 Delete
+                                            </a>
+                                            <a href="/Room/Residents/@room.RoomId" class="text-gray-700 hover:text-gray-900 text-sm font-medium">
+                                                View Residents
                                             </a>
                                         }
                                         else if (User.Identity.IsAuthenticated && room.IsAvailable)

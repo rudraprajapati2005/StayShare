@@ -82,6 +82,10 @@ namespace StayShare
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllerRoute(
+                    name: "room_residents",
+                    pattern: "Room/Residents/{id}",
+                    defaults: new { controller = "Room", action = "Residents" });
+                endpoints.MapControllerRoute(
                     name: "default",
                     pattern: "{controller=Home}/{action=Index}/{id?}");
             });

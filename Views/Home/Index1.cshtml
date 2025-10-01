@@ -62,6 +62,51 @@
         }
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            @{
+                var currentStay = ViewBag.CurrentStay as StayShare.Models.RoomOccupancy;
+                var roommates = ViewBag.Roommates as List<StayShare.Models.User>;
+            }
+            @if (currentStay != null)
+            {
+                <div class="bg-white shadow-md rounded-lg p-6 lg:col-span-2">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <svg class="w-5 h-5 mr-2 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10.707 2.293a1 1 0 00-1.414 0L2 9.586V18a2 2 0 002 2h3a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1h3a2 2 0 002-2V9.586l-7.293-7.293z" />
+                        </svg>
+                        Current Stay
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <div class="text-sm text-gray-500">Property</div>
+                            <div class="text-gray-800 font-medium">@currentStay.Room?.Property?.Name</div>
+                        </div>
+                        <div>
+                            <div class="text-sm text-gray-500">Room</div>
+                            <div class="text-gray-800 font-medium">#@currentStay.Room?.RoomNumber (@currentStay.Room?.RoomType)</div>
+                        </div>
+                        <div>
+                            <div class="text-sm text-gray-500">Joined</div>
+                            <div class="text-gray-800 font-medium">@((currentStay.JoinedAt ?? currentStay.RequestedAt).ToString("yyyy-MM-dd"))</div>
+                        </div>
+                    </div>
+                    <div class="mt-4">
+                        <div class="text-sm text-gray-500 mb-1">Roommates</div>
+                        @if (roommates != null && roommates.Any())
+                        {
+                            <div class="flex flex-wrap gap-2">
+                                @foreach (var mate in roommates)
+                                {
+                                    <span class="bg-gray-100 text-gray-800 text-sm px-2 py-1 rounded">@mate.FullName (@mate.Email)</span>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="text-gray-600">No roommates found.</div>
+                        }
+                    </div>
+                </div>
+            }
             <!-- Basic Information Card -->
             <div class="bg-white shadow-md rounded-lg p-6">
                 <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center">

@@ -95,7 +95,7 @@ namespace StayShare.Controllers
         }
 
         // GET: /Booking/Incoming
-        public async Task<IActionResult> Incoming()
+        public async Task<IActionResult> Incoming(int? propertyId)
         {
             if (!User.Identity.IsAuthenticated) return RedirectToAction("Login", "Auth");
             var role = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
@@ -105,6 +105,11 @@ namespace StayShare.Controllers
             }
             var email = User.FindFirst(ClaimTypes.Email)?.Value ?? "";
             var list = await _bookings.GetByHostAsync(email);
+            if (propertyId.HasValue)
+            {
+                list = list?.Where(r => r.Room != null && r.Room.Property != null && r.Room.Property.PropertyId == propertyId.Value);
+                ViewBag.PropertyId = propertyId.Value;
+            }
             return View(list);
         }
 
@@ -145,11 +150,29 @@ namespace StayShare.Controllers
             });
 
             req.Status = BookingStatus.Accepted;
+            req.Note = $"Your request for room #{room.RoomNumber} at {room.Property?.Name} was accepted.";
             await _bookings.UpdateAsync(req);
             await _unitOfWork.CommitAsync();
 
             TempData["SuccessMessage"] = "Booking approved.";
             return RedirectToAction("Incoming");
+        }
+
+        // GET: /Booking/PendingCount
+        [HttpGet]
+        public async Task<IActionResult> PendingCount()
+        {
+            if (!User.Identity.IsAuthenticated) return Json(new { count = 0 });
+            var role = User.FindFirst(ClaimTypes.Role)?.Value ?? "";
+            if (!(string.Equals(role, "Host", StringComparison.OrdinalIgnoreCase) || string.Equals(role, "Owner", StringComparison.OrdinalIgnoreCase)))
+            {
+                return Json(new { count = 0 });
+            }
+
+            var email = User.FindFirst(ClaimTypes.Email)?.Value ?? "";
+            var list = await _bookings.GetByHostAsync(email);
+            var pendingCount = list?.Count(r => r.Status == BookingStatus.Pending) ?? 0;
+            return Json(new { count = pendingCount });
         }
 
         // POST: /Booking/Decline/5
@@ -169,6 +192,7 @@ namespace StayShare.Controllers
             if (!string.Equals(req.Room.Property.OwnerContact?.Trim(), email?.Trim(), StringComparison.OrdinalIgnoreCase)) return Forbid();
 
             req.Status = BookingStatus.Declined;
+            req.Note = $"Your request for room #{req.Room?.RoomNumber} at {req.Room?.Property?.Name} was declined.";
             await _bookings.UpdateAsync(req);
             await _unitOfWork.CommitAsync();
 

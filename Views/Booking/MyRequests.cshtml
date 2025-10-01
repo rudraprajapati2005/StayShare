@@ -16,6 +16,7 @@
                         <th>Move-in</th>
                         <th>Months</th>
                         <th>Status</th>
+                        <th>Message</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -27,6 +28,7 @@
                             <td>@r.MoveInDate.ToString("yyyy-MM-dd")</td>
                             <td>@r.Months</td>
                             <td>@r.Status</td>
+                            <td>@(string.IsNullOrWhiteSpace(r.Note) ? "-" : r.Note)</td>
                         </tr>
                     }
                 </tbody>

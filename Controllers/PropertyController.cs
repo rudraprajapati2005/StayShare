@@ -246,6 +246,62 @@ namespace StayShare.Controllers
                 return NotFound();
             }
 
+            // Build occupancy summaries per room
+            var roomToCurrent = new System.Collections.Generic.Dictionary<int, System.Collections.Generic.List<User>>();
+            var roomToUpcoming = new System.Collections.Generic.Dictionary<int, System.Collections.Generic.List<(User user, System.DateTime? startDate)>>();
+            var roomToPast = new System.Collections.Generic.Dictionary<int, System.Collections.Generic.List<User>>();
+
+            // Determine current viewer and their occupancies to highlight
+            int? viewerUserId = null;
+            if (User.Identity.IsAuthenticated)
+            {
+                var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
+                var viewer = await _unitOfWork.Users.GetUserByEmailAsync(email);
+                viewerUserId = viewer?.UserId;
+            }
+
+            var roomToViewerStatus = new System.Collections.Generic.Dictionary<int, string>();
+
+            if (property.Rooms != null)
+            {
+                foreach (var room in property.Rooms)
+                {
+                    var occs = await _unitOfWork.Occupancies.GetOccupanciesByRoomIdAsync(room.RoomId);
+                    var current = occs?.Where(o => o.IsActive).Select(o => o.User).Where(u => u != null).ToList() ?? new System.Collections.Generic.List<User>();
+                    var upcoming = occs?.Where(o => !o.IsActive && o.Status == OccupancyStatus.Accepted && o.JoinedAt.HasValue && o.JoinedAt.Value > System.DateTime.UtcNow)
+                        .Select(o => (o.User, o.JoinedAt))
+                        .Where(t => t.User != null)
+                        .ToList() ?? new System.Collections.Generic.List<(User, System.DateTime?)>();
+                    var past = occs?.Where(o => !o.IsActive && (o.Status == OccupancyStatus.Left || o.Status == OccupancyStatus.Rejected))
+                        .Select(o => o.User).Where(u => u != null).ToList() ?? new System.Collections.Generic.List<User>();
+
+                    roomToCurrent[room.RoomId] = current;
+                    roomToUpcoming[room.RoomId] = upcoming;
+                    roomToPast[room.RoomId] = past;
+
+                    if (viewerUserId.HasValue)
+                    {
+                        var myOcc = occs?.FirstOrDefault(o => o.UserId == viewerUserId.Value);
+                        if (myOcc != null)
+                        {
+                            if (myOcc.IsActive)
+                            {
+                                roomToViewerStatus[room.RoomId] = "You are staying here";
+                            }
+                            else if (myOcc.Status == OccupancyStatus.Accepted && myOcc.JoinedAt.HasValue && myOcc.JoinedAt.Value > System.DateTime.UtcNow)
+                            {
+                                roomToViewerStatus[room.RoomId] = $"You will join on {myOcc.JoinedAt.Value:yyyy-MM-dd}";
+                            }
+                        }
+                    }
+                }
+            }
+
+            ViewBag.RoomToCurrent = roomToCurrent;
+            ViewBag.RoomToUpcoming = roomToUpcoming;
+            ViewBag.RoomToPast = roomToPast;
+            ViewBag.RoomToViewerStatus = roomToViewerStatus;
+
             return View(property);
         }
 

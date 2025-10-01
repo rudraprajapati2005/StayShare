@@ -1,0 +1,80 @@
+@{
+    ViewData["Title"] = "Room Residents";
+    var room = ViewBag.Room as StayShare.Models.Room;
+    var current = ViewBag.Current as System.Collections.Generic.List<StayShare.Models.RoomOccupancy>;
+    var upcoming = ViewBag.Upcoming as System.Collections.Generic.List<StayShare.Models.RoomOccupancy>;
+    var past = ViewBag.Past as System.Collections.Generic.List<StayShare.Models.RoomOccupancy>;
+}
+
+<div class="min-h-screen bg-gray-100 py-10 px-6">
+    <div class="max-w-5xl mx-auto bg-white shadow rounded p-6">
+        <div class="flex justify-between items-center mb-4">
+            <h1 class="text-2xl font-bold text-gray-800">Room #@room?.RoomNumber Residents</h1>
+            <a href="/Property/Details/@room?.PropertyId" class="text-blue-600 hover:text-blue-800">Back to Property</a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+                <h2 class="text-lg font-semibold mb-2">Current Residents</h2>
+                @if (current != null && current.Any())
+                {
+                    <ul class="space-y-2">
+                        @foreach (var o in current)
+                        {
+                            <li class="border rounded p-2">
+                                <div class="font-medium">@o.User?.FullName (@o.User?.Email)</div>
+                                <div class="text-sm text-gray-600">Joined: @((o.JoinedAt ?? o.RequestedAt).ToString("yyyy-MM-dd"))</div>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <div class="text-gray-600">None</div>
+                }
+            </div>
+
+            <div>
+                <h2 class="text-lg font-semibold mb-2">Upcoming/Next Residents</h2>
+                @if (upcoming != null && upcoming.Any())
+                {
+                    <ul class="space-y-2">
+                        @foreach (var o in upcoming)
+                        {
+                            <li class="border rounded p-2">
+                                <div class="font-medium">@o.User?.FullName (@o.User?.Email)</div>
+                                <div class="text-sm text-gray-600">Move-in: @o.JoinedAt?.ToString("yyyy-MM-dd")</div>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <div class="text-gray-600">None</div>
+                }
+            </div>
+
+            <div>
+                <h2 class="text-lg font-semibold mb-2">Past Residents</h2>
+                @if (past != null && past.Any())
+                {
+                    <ul class="space-y-2">
+                        @foreach (var o in past)
+                        {
+                            <li class="border rounded p-2">
+                                <div class="font-medium">@o.User?.FullName (@o.User?.Email)</div>
+                                <div class="text-sm text-gray-600">Stayed: @((o.JoinedAt?.ToString("yyyy-MM-dd") ?? "?") ) - @((o.ExitDate?.ToString("yyyy-MM-dd") ?? "?"))</div>
+                            </li>
+                        }
+                    </ul>
+                }
+                else
+                {
+                    <div class="text-gray-600">None</div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+

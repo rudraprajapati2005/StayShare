@@ -30,6 +30,13 @@
                     @if (role == "Owner" || role == "Host")
                     {
                         <a asp-controller="Property" asp-action="Index" class="text-gray-700 hover:text-orange-500">My Properties</a>
+                        <a asp-controller="Booking" asp-action="Incoming" class="relative text-gray-700 hover:text-orange-500 flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M2 5a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm2 0l6 4 6-4H4z" />
+                            </svg>
+                            Messages
+                            <span id="pending-count" class="ml-1 inline-flex items-center justify-center text-xs font-bold rounded-full bg-red-500 text-white px-1.5 py-0.5" style="display:none;">0</span>
+                        </a>
                     }
                 }
             </div>
@@ -79,6 +86,12 @@
                 @if (mrole == "Owner" || mrole == "Host")
                 {
                     <a asp-controller="Property" asp-action="Index" class="block text-gray-700 hover:text-orange-500">My Properties</a>
+                    <a asp-controller="Booking" asp-action="Incoming" class="flex items-center text-gray-700 hover:text-orange-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                            <path d="M2 5a2 2 0 012-2h12a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V5zm2 0l6 4 6-4H4z" />
+                        </svg>
+                        Messages <span id="pending-count-mobile" class="ml-1 inline-flex items-center justify-center text-xs font-bold rounded-full bg-red-500 text-white px-1.5 py-0.5" style="display:none;">0</span>
+                    </a>
                 }
             }
         </div>
@@ -101,6 +114,30 @@
         btn.addEventListener('click', () => {
             menu.classList.toggle('hidden');
         });
+
+        // Fetch pending messages count for owner/host
+        async function loadPendingCount() {
+            try {
+                const res = await fetch('/Booking/PendingCount');
+                const data = await res.json();
+                const badge = document.getElementById('pending-count');
+                const badgeMobile = document.getElementById('pending-count-mobile');
+                if (!badge || !badgeMobile) return;
+                if (data.count && data.count > 0) {
+                    badge.textContent = data.count;
+                    badge.style.display = 'inline-flex';
+                    badgeMobile.textContent = data.count;
+                    badgeMobile.style.display = 'inline-flex';
+                } else {
+                    badge.style.display = 'none';
+                    badgeMobile.style.display = 'none';
+                }
+            } catch (e) {
+                // ignore
+            }
+        }
+        loadPendingCount();
+        setInterval(loadPendingCount, 30000);
     </script>
 
     @await RenderSectionAsync("Scripts", required: false)

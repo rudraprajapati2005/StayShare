@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using StayShare.Models;
 using StayShare.Repositories;
 using System.Threading.Tasks;
@@ -12,6 +13,34 @@ namespace StayShare.Controllers
         public RoomController(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
+        }
+
+        // GET: /Room/Residents/5
+        [HttpGet("Room/Residents/{id}")]
+        [AllowAnonymous]
+        public async Task<IActionResult> Residents(int id)
+        {
+            var room = await _unitOfWork.Rooms.GetRoomByIdAsync(id);
+            if (room == null)
+            {
+                return NotFound();
+            }
+
+            var occupancies = await _unitOfWork.Occupancies.GetOccupanciesByRoomIdAsync(id);
+            var current = occupancies?.Where(o => o.IsActive).ToList() ?? new System.Collections.Generic.List<StayShare.Models.RoomOccupancy>();
+            var upcoming = occupancies?.Where(o => !o.IsActive && o.Status == StayShare.Models.OccupancyStatus.Accepted && o.JoinedAt.HasValue && o.JoinedAt.Value > System.DateTime.UtcNow)
+                .OrderBy(o => o.JoinedAt)
+                .ToList() ?? new System.Collections.Generic.List<StayShare.Models.RoomOccupancy>();
+            var past = occupancies?.Where(o => !o.IsActive && (o.Status == StayShare.Models.OccupancyStatus.Left || o.Status == StayShare.Models.OccupancyStatus.Rejected))
+                .OrderByDescending(o => o.ExitDate ?? o.JoinedAt)
+                .ToList() ?? new System.Collections.Generic.List<StayShare.Models.RoomOccupancy>();
+
+            ViewBag.Room = room;
+            ViewBag.Current = current;
+            ViewBag.Upcoming = upcoming;
+            ViewBag.Past = past;
+
+            return View();
         }
 
         // GET: /Room/Create?propertyId=5

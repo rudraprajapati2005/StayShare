@@ -74,6 +74,20 @@ namespace StayShare.Controllers
             // Debug information
             TempData["DebugInfo"] = $"Email: {email}, User Found: {user != null}, Profile Found: {profile != null}, FullName: {fullName}, Role: {role}, CreatedAt: {user?.CreatedAt}";
 
+            // Determine current stay and roommates for residents
+            RoomOccupancy currentStay = null;
+            List<User> roommates = new List<User>();
+            if (user != null && string.Equals(role, "Resident", StringComparison.OrdinalIgnoreCase))
+            {
+                var occupancies = await _unitOfWork.Occupancies.GetOccupanciesByUserIdAsync(user.UserId);
+                currentStay = occupancies?.FirstOrDefault(o => o.IsActive);
+                if (currentStay != null)
+                {
+                    var roomMates = await _unitOfWork.Occupancies.GetOccupanciesByRoomIdAsync(currentStay.RoomId);
+                    roommates = roomMates?.Where(o => o.IsActive && o.UserId != user.UserId).Select(o => o.User).Where(u => u != null).ToList();
+                }
+            }
+
             // Pass data to the view using ViewBag
             ViewBag.FullName = fullName;
             ViewBag.Email = email;
@@ -81,6 +95,8 @@ namespace StayShare.Controllers
             ViewBag.User = user;
             ViewBag.Profile = profile;
             ViewBag.UserCreatedAt = user?.CreatedAt;
+            ViewBag.CurrentStay = currentStay;
+            ViewBag.Roommates = roommates;
 
             return View();
         }
