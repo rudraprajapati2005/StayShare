@@ -183,16 +183,28 @@
                                             <span class="bg-blue-100 text-blue-800 text-xs font-medium px-2 py-1 rounded">
                                                 @room.RoomType
                                             </span>
-                                            @if (room.IsAvailable)
+                                            @{
+                                                var roomToCurrent = ViewBag.RoomToCurrent as System.Collections.Generic.Dictionary<int, System.Collections.Generic.List<StayShare.Models.User>>;
+                                                var current = roomToCurrent != null && roomToCurrent.ContainsKey(room.RoomId) ? roomToCurrent[room.RoomId] : new System.Collections.Generic.List<StayShare.Models.User>();
+                                                var currentCount = current?.Count ?? 0;
+                                                var capacity = room.Capacity;
+                                            }
+                                            @if (currentCount >= capacity)
                                             {
-                                                <span class="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded">
-                                                    Available
+                                                <span class="bg-red-100 text-red-800 text-xs font-medium px-2 py-1 rounded">
+                                                    Full (@currentCount/@capacity)
+                                                </span>
+                                            }
+                                            else if (currentCount > 0)
+                                            {
+                                                <span class="bg-yellow-100 text-yellow-800 text-xs font-medium px-2 py-1 rounded">
+                                                    Partial (@currentCount/@capacity)
                                                 </span>
                                             }
                                             else
                                             {
-                                                <span class="bg-red-100 text-red-800 text-xs font-medium px-2 py-1 rounded">
-                                                    Occupied
+                                                <span class="bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded">
+                                                    Available (0/@capacity)
                                                 </span>
                                             }
                                         </div>
@@ -206,12 +218,12 @@
                                             <p><strong>Amenities:</strong> @room.Amenities</p>
                                         }
                                         @{
-                                            var roomToCurrent = ViewBag.RoomToCurrent as System.Collections.Generic.Dictionary<int, System.Collections.Generic.List<StayShare.Models.User>>;
                                             var roomToUpcoming = ViewBag.RoomToUpcoming as System.Collections.Generic.Dictionary<int, System.Collections.Generic.List<(StayShare.Models.User user, System.DateTime? startDate)>>;
                                             var roomToViewerStatus = ViewBag.RoomToViewerStatus as System.Collections.Generic.Dictionary<int, string>;
-                                            var current = roomToCurrent != null && roomToCurrent.ContainsKey(room.RoomId) ? roomToCurrent[room.RoomId] : new System.Collections.Generic.List<StayShare.Models.User>();
+                                            var roomToViewerBookingStatus = ViewBag.RoomToViewerBookingStatus as System.Collections.Generic.Dictionary<int, string>;
                                             var upcoming = roomToUpcoming != null && roomToUpcoming.ContainsKey(room.RoomId) ? roomToUpcoming[room.RoomId] : new System.Collections.Generic.List<(StayShare.Models.User, System.DateTime?)>();
                                             var viewerStatus = roomToViewerStatus != null && roomToViewerStatus.ContainsKey(room.RoomId) ? roomToViewerStatus[room.RoomId] : null;
+                                            var viewerBookingStatus = roomToViewerBookingStatus != null && roomToViewerBookingStatus.ContainsKey(room.RoomId) ? roomToViewerBookingStatus[room.RoomId] : null;
                                         }
                                         @if (!string.IsNullOrEmpty(viewerStatus))
                                         {
@@ -240,9 +252,37 @@
                                             <!-- Other users can book available rooms -->
                                             if (string.Equals(role, "Resident", System.StringComparison.OrdinalIgnoreCase))
                                             {
-                                                <a href="/Booking/Create?roomId=@room.RoomId" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm font-medium transition">
-                                                    Request to Book
-                                                </a>
+                                                @if (!string.IsNullOrEmpty(viewerStatus))
+                                                {
+                                                    <!-- User already has occupancy status for this room, don't show booking button -->
+                                                }
+                                                else if (!string.IsNullOrEmpty(viewerBookingStatus))
+                                                {
+                                                    @if (viewerBookingStatus == "Already Applied")
+                                                    {
+                                                        <span class="bg-yellow-100 text-yellow-800 px-3 py-1 rounded text-sm font-medium">
+                                                            Already Applied
+                                                        </span>
+                                                    }
+                                                    else if (viewerBookingStatus == "Accepted")
+                                                    {
+                                                        <span class="bg-green-100 text-green-800 px-3 py-1 rounded text-sm font-medium">
+                                                            Accepted
+                                                        </span>
+                                                    }
+                                                    else if (viewerBookingStatus == "Declined")
+                                                    {
+                                                        <a href="/Booking/Create?roomId=@room.RoomId" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm font-medium transition">
+                                                            Apply Again
+                                                        </a>
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <a href="/Booking/Create?roomId=@room.RoomId" class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-sm font-medium transition">
+                                                        Request to Book
+                                                    </a>
+                                                }
                                             }
                                         }
                                         else if (!User.Identity.IsAuthenticated && room.IsAvailable)

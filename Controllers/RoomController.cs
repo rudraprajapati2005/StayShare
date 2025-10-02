@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using StayShare.Models;
 using StayShare.Repositories;
 using System.Threading.Tasks;
-
+using System.Linq;
 namespace StayShare.Controllers
 {
     public class RoomController : Controller
@@ -27,8 +27,8 @@ namespace StayShare.Controllers
             }
 
             var occupancies = await _unitOfWork.Occupancies.GetOccupanciesByRoomIdAsync(id);
-            var current = occupancies?.Where(o => o.IsActive).ToList() ?? new System.Collections.Generic.List<StayShare.Models.RoomOccupancy>();
-            var upcoming = occupancies?.Where(o => !o.IsActive && o.Status == StayShare.Models.OccupancyStatus.Accepted && o.JoinedAt.HasValue && o.JoinedAt.Value > System.DateTime.UtcNow)
+            var current = occupancies?.Where(o => o.IsActive && o.JoinedAt.HasValue && o.JoinedAt.Value <= System.DateTime.UtcNow).ToList() ?? new System.Collections.Generic.List<StayShare.Models.RoomOccupancy>();
+            var upcoming = occupancies?.Where(o => o.Status == StayShare.Models.OccupancyStatus.Accepted && o.JoinedAt.HasValue && o.JoinedAt.Value > System.DateTime.UtcNow)
                 .OrderBy(o => o.JoinedAt)
                 .ToList() ?? new System.Collections.Generic.List<StayShare.Models.RoomOccupancy>();
             var past = occupancies?.Where(o => !o.IsActive && (o.Status == StayShare.Models.OccupancyStatus.Left || o.Status == StayShare.Models.OccupancyStatus.Rejected))
@@ -114,6 +114,9 @@ namespace StayShare.Controllers
                 }
 
                 model.PropertyId = propertyId;
+                
+                // Set availability automatically: true if capacity > 0, will be updated later based on occupancy
+                model.IsAvailable = model.Capacity > 0;
 
                 await _unitOfWork.Rooms.AddRoomAsync(model);
                 await _unitOfWork.CommitAsync();
@@ -292,6 +295,23 @@ namespace StayShare.Controllers
             {
                 TempData["ErrorMessage"] = "An error occurred while deleting the room.";
                 return RedirectToAction("Index", "Property");
+            }
+        }
+
+        // Helper method to update room availability based on current occupancy
+        private async Task UpdateRoomAvailabilityAsync(int roomId)
+        {
+            var room = await _unitOfWork.Rooms.GetRoomByIdAsync(roomId);
+            if (room != null)
+            {
+                var occupancies = await _unitOfWork.Occupancies.GetOccupanciesByRoomIdAsync(roomId);
+                var currentOccupants = occupancies?.Count(o => o.IsActive && o.JoinedAt.HasValue && o.JoinedAt.Value <= DateTime.UtcNow) ?? 0;
+                
+                // Room is available if current occupants < capacity
+                room.IsAvailable = currentOccupants < room.Capacity;
+                
+                await _unitOfWork.Rooms.UpdateRoomAsync(room);
+                await _unitOfWork.CommitAsync();
             }
         }
     }

@@ -145,7 +145,7 @@ namespace StayShare.Controllers
                 UserId = req.UserId,
                 RequestedAt = req.CreatedAt,
                 JoinedAt = req.MoveInDate,
-                IsActive = true,
+                IsActive = req.MoveInDate <= DateTime.UtcNow, // Only active if move-in date is today or past
                 Status = OccupancyStatus.Accepted
             });
 
@@ -153,6 +153,9 @@ namespace StayShare.Controllers
             req.Note = $"Your request for room #{room.RoomNumber} at {room.Property?.Name} was accepted.";
             await _bookings.UpdateAsync(req);
             await _unitOfWork.CommitAsync();
+
+            // Update room availability based on new occupancy
+            await UpdateRoomAvailabilityAsync(req.RoomId);
 
             TempData["SuccessMessage"] = "Booking approved.";
             return RedirectToAction("Incoming");
@@ -198,6 +201,23 @@ namespace StayShare.Controllers
 
             TempData["SuccessMessage"] = "Booking declined.";
             return RedirectToAction("Incoming");
+        }
+
+        // Helper method to update room availability based on current occupancy
+        private async Task UpdateRoomAvailabilityAsync(int roomId)
+        {
+            var room = await _unitOfWork.Rooms.GetRoomByIdAsync(roomId);
+            if (room != null)
+            {
+                var occupancies = await _unitOfWork.Occupancies.GetOccupanciesByRoomIdAsync(roomId);
+                var currentOccupants = occupancies?.Count(o => o.IsActive && o.JoinedAt.HasValue && o.JoinedAt.Value <= DateTime.UtcNow) ?? 0;
+                
+                // Room is available if current occupants < capacity
+                room.IsAvailable = currentOccupants < room.Capacity;
+                
+                await _unitOfWork.Rooms.UpdateRoomAsync(room);
+                await _unitOfWork.CommitAsync();
+            }
         }
     }
 }

@@ -53,16 +53,7 @@
                     <span asp-validation-for="Amenities" class="text-red-500 text-sm"></span>
                 </div>
 
-                <!-- Availability -->
-                <div class="md:col-span-2">
-                    <div class="flex items-center">
-                        <input asp-for="IsAvailable" type="checkbox" class="h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded" />
-                        <label asp-for="IsAvailable" class="ml-2 block text-sm text-gray-900">
-                            Room is available for rent
-                        </label>
-                    </div>
-                    <span asp-validation-for="IsAvailable" class="text-red-500 text-sm"></span>
-                </div>
+                <!-- Note: Room availability will be set automatically based on current occupancy vs capacity -->
             </div>
 
             <!-- Submit Buttons -->

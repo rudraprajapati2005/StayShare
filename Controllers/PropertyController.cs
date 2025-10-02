@@ -253,22 +253,28 @@ namespace StayShare.Controllers
 
             // Determine current viewer and their occupancies to highlight
             int? viewerUserId = null;
+            var viewerBookingRequests = new System.Collections.Generic.List<BookingRequest>();
             if (User.Identity.IsAuthenticated)
             {
                 var email = User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value ?? "";
                 var viewer = await _unitOfWork.Users.GetUserByEmailAsync(email);
                 viewerUserId = viewer?.UserId;
+                if (viewerUserId.HasValue)
+                {
+                    viewerBookingRequests = (await _unitOfWork.Bookings.GetByResidentAsync(viewerUserId.Value))?.ToList() ?? new System.Collections.Generic.List<BookingRequest>();
+                }
             }
 
             var roomToViewerStatus = new System.Collections.Generic.Dictionary<int, string>();
+            var roomToViewerBookingStatus = new System.Collections.Generic.Dictionary<int, string>();
 
             if (property.Rooms != null)
             {
                 foreach (var room in property.Rooms)
                 {
                     var occs = await _unitOfWork.Occupancies.GetOccupanciesByRoomIdAsync(room.RoomId);
-                    var current = occs?.Where(o => o.IsActive).Select(o => o.User).Where(u => u != null).ToList() ?? new System.Collections.Generic.List<User>();
-                    var upcoming = occs?.Where(o => !o.IsActive && o.Status == OccupancyStatus.Accepted && o.JoinedAt.HasValue && o.JoinedAt.Value > System.DateTime.UtcNow)
+                    var current = occs?.Where(o => o.IsActive && o.JoinedAt.HasValue && o.JoinedAt.Value <= System.DateTime.UtcNow).Select(o => o.User).Where(u => u != null).ToList() ?? new System.Collections.Generic.List<User>();
+                    var upcoming = occs?.Where(o => o.Status == OccupancyStatus.Accepted && o.JoinedAt.HasValue && o.JoinedAt.Value > System.DateTime.UtcNow)
                         .Select(o => (o.User, o.JoinedAt))
                         .Where(t => t.User != null)
                         .ToList() ?? new System.Collections.Generic.List<(User, System.DateTime?)>();
@@ -293,6 +299,24 @@ namespace StayShare.Controllers
                                 roomToViewerStatus[room.RoomId] = $"You will join on {myOcc.JoinedAt.Value:yyyy-MM-dd}";
                             }
                         }
+
+                        // Check if user has pending/recent booking requests for this room
+                        var existingRequest = viewerBookingRequests.FirstOrDefault(r => r.RoomId == room.RoomId);
+                        if (existingRequest != null)
+                        {
+                            switch (existingRequest.Status)
+                            {
+                                case BookingStatus.Pending:
+                                    roomToViewerBookingStatus[room.RoomId] = "Already Applied";
+                                    break;
+                                case BookingStatus.Accepted:
+                                    roomToViewerBookingStatus[room.RoomId] = "Accepted";
+                                    break;
+                                case BookingStatus.Declined:
+                                    roomToViewerBookingStatus[room.RoomId] = "Declined";
+                                    break;
+                            }
+                        }
                     }
                 }
             }
@@ -301,6 +325,7 @@ namespace StayShare.Controllers
             ViewBag.RoomToUpcoming = roomToUpcoming;
             ViewBag.RoomToPast = roomToPast;
             ViewBag.RoomToViewerStatus = roomToViewerStatus;
+            ViewBag.RoomToViewerBookingStatus = roomToViewerBookingStatus;
 
             return View(property);
         }
