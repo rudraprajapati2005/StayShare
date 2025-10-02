@@ -23,6 +23,10 @@
                 {
                     <a asp-controller="Property" asp-action="Search" class="text-gray-700 hover:text-orange-500">Find Stays</a>
                 }
+                @if (string.Equals(role, "Resident", StringComparison.OrdinalIgnoreCase))
+                {
+                    <a asp-controller="Booking" asp-action="MyBookings" class="text-gray-700 hover:text-orange-500">My Bookings</a>
+                }
                 <a asp-controller="Home" asp-action="About" class="text-gray-700 hover:text-orange-500">About</a>
                 <a asp-controller="Home" asp-action="Contact" class="text-gray-700 hover:text-orange-500">Contact</a>
                 @if (User.Identity.IsAuthenticated)
@@ -78,6 +82,10 @@
             @if (string.IsNullOrEmpty(mrole) || !(mrole == "Owner" || mrole == "Host"))
             {
                 <a asp-controller="Property" asp-action="Search" class="block text-gray-700 hover:text-orange-500">Find Stays</a>
+            }
+            @if (string.Equals(mrole, "Resident", StringComparison.OrdinalIgnoreCase))
+            {
+                <a asp-controller="Booking" asp-action="MyBookings" class="block text-gray-700 hover:text-orange-500">My Bookings</a>
             }
             <a asp-controller="Home" asp-action="About" class="block text-gray-700 hover:text-orange-500">About</a>
             <a asp-controller="Home" asp-action="Contact" class="block text-gray-700 hover:text-orange-500">Contact</a>

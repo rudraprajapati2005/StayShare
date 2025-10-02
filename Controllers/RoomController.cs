@@ -4,6 +4,7 @@ using StayShare.Models;
 using StayShare.Repositories;
 using System.Threading.Tasks;
 using System.Linq;
+using System;
 namespace StayShare.Controllers
 {
     public class RoomController : Controller
@@ -298,17 +299,25 @@ namespace StayShare.Controllers
             }
         }
 
-        // Helper method to update room availability based on current occupancy
+        // Helper method to update room availability based on current + future occupancy
         private async Task UpdateRoomAvailabilityAsync(int roomId)
         {
             var room = await _unitOfWork.Rooms.GetRoomByIdAsync(roomId);
             if (room != null)
             {
                 var occupancies = await _unitOfWork.Occupancies.GetOccupanciesByRoomIdAsync(roomId);
+                
+                // Count current occupants (already moved in)
                 var currentOccupants = occupancies?.Count(o => o.IsActive && o.JoinedAt.HasValue && o.JoinedAt.Value <= DateTime.UtcNow) ?? 0;
                 
-                // Room is available if current occupants < capacity
-                room.IsAvailable = currentOccupants < room.Capacity;
+                // Count future accepted bookings (will move in later)
+                var futureOccupants = occupancies?.Count(o => o.Status == OccupancyStatus.Accepted && o.JoinedAt.HasValue && o.JoinedAt.Value > DateTime.UtcNow) ?? 0;
+                
+                // Total committed occupants = current + future
+                var totalCommittedOccupants = currentOccupants + futureOccupants;
+                
+                // Room is available if total committed occupants < capacity
+                room.IsAvailable = totalCommittedOccupants < room.Capacity;
                 
                 await _unitOfWork.Rooms.UpdateRoomAsync(room);
                 await _unitOfWork.CommitAsync();

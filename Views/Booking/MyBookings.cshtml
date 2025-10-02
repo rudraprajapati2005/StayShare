@@ -1,0 +1,247 @@
+@{
+    ViewData["Title"] = "My Bookings";
+    var currentStay = ViewBag.CurrentStay as StayShare.Models.RoomOccupancy;
+    var upcomingStay = ViewBag.UpcomingStay as StayShare.Models.RoomOccupancy;
+    var pastStays = ViewBag.PastStays as System.Collections.Generic.List<StayShare.Models.RoomOccupancy>;
+    var roommates = ViewBag.Roommates as System.Collections.Generic.List<StayShare.Models.User>;
+    var bookingRequests = ViewBag.BookingRequests as System.Collections.Generic.List<StayShare.Models.BookingRequest>;
+    var filter = ViewBag.Filter as string;
+    var pendingCount = ViewBag.PendingCount as int? ?? 0;
+    var acceptedCount = ViewBag.AcceptedCount as int? ?? 0;
+    var declinedCount = ViewBag.DeclinedCount as int? ?? 0;
+    var totalCount = ViewBag.TotalCount as int? ?? 0;
+}
+
+<div class="min-h-screen bg-gray-100 py-10 px-6">
+    <div class="max-w-7xl mx-auto">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold text-orange-600">My Bookings</h1>
+            <a href="/Property/Search" class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-medium transition">
+                Find More Properties
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+            <!-- Current Stay Section (Priority) -->
+            <div class="xl:col-span-2">
+                @if (currentStay != null)
+                {
+                    <div class="bg-white rounded-lg shadow-lg p-6 mb-6 border-l-4 border-green-500">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-2xl font-bold text-green-600 flex items-center">
+                                <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M10.707 2.293a1 1 0 00-1.414 0L2 9.586V18a2 2 0 002 2h3a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1h3a2 2 0 002-2V9.586l-7.293-7.293z" />
+                                </svg>
+                                Current Stay
+                            </h2>
+                            <span class="bg-green-100 text-green-800 text-sm font-medium px-3 py-1 rounded-full">Active</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <div class="space-y-3">
+                                    <div>
+                                        <span class="text-sm font-medium text-gray-500">Property</span>
+                                        <p class="text-lg font-semibold text-gray-900">@currentStay.Room?.Property?.Name</p>
+                                    </div>
+                                    <div>
+                                        <span class="text-sm font-medium text-gray-500">Room</span>
+                                        <p class="text-gray-800">#@currentStay.Room?.RoomNumber (@currentStay.Room?.RoomType)</p>
+                                    </div>
+                                    <div>
+                                        <span class="text-sm font-medium text-gray-500">Rent</span>
+                                        <p class="text-gray-800">₹@currentStay.Room?.RentPerMonth/month</p>
+                                    </div>
+                                    <div>
+                                        <span class="text-sm font-medium text-gray-500">Joined</span>
+                                        <p class="text-gray-800">@((currentStay.JoinedAt ?? currentStay.RequestedAt).ToString("MMMM dd, yyyy"))</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <div class="mb-3">
+                                    <span class="text-sm font-medium text-gray-500">Roommates (@(roommates?.Count ?? 0))</span>
+                                </div>
+                                @if (roommates != null && roommates.Any())
+                                {
+                                    <div class="space-y-2">
+                                        @foreach (var mate in roommates)
+                                        {
+                                            <div class="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
+                                                <div class="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
+                                                    <span class="text-orange-600 font-medium">@mate.FullName.Substring(0, 1).ToUpper()</span>
+                                                </div>
+                                                <div>
+                                                    <p class="font-medium text-gray-900">@mate.FullName</p>
+                                                    <p class="text-sm text-gray-500">@mate.Email</p>
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <p class="text-gray-500 italic">No roommates</p>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+                else if (upcomingStay != null)
+                {
+                    <div class="bg-white rounded-lg shadow-lg p-6 mb-6 border-l-4 border-blue-500">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-2xl font-bold text-blue-600 flex items-center">
+                                <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd" />
+                                </svg>
+                                Upcoming Stay
+                            </h2>
+                            <span class="bg-blue-100 text-blue-800 text-sm font-medium px-3 py-1 rounded-full">Move-in: @upcomingStay.JoinedAt?.ToString("MMM dd")</span>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <div>
+                                <span class="text-sm font-medium text-gray-500">Property</span>
+                                <p class="text-lg font-semibold text-gray-900">@upcomingStay.Room?.Property?.Name</p>
+                            </div>
+                            <div>
+                                <span class="text-sm font-medium text-gray-500">Room</span>
+                                <p class="text-gray-800">#@upcomingStay.Room?.RoomNumber (@upcomingStay.Room?.RoomType)</p>
+                            </div>
+                            <div>
+                                <span class="text-sm font-medium text-gray-500">Move-in Date</span>
+                                <p class="text-gray-800">@upcomingStay.JoinedAt?.ToString("MMMM dd, yyyy")</p>
+                            </div>
+                        </div>
+                    </div>
+                }
+
+                <!-- Booking Requests Section -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <div class="flex items-center justify-between mb-6">
+                        <h2 class="text-xl font-bold text-gray-800">Booking Requests</h2>
+                        <div class="flex space-x-2">
+                            <a href="?filter=all" class="px-3 py-1 text-sm rounded @(filter == "all" ? "bg-orange-500 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300")">
+                                All (@totalCount)
+                            </a>
+                            <a href="?filter=pending" class="px-3 py-1 text-sm rounded @(filter == "pending" ? "bg-yellow-500 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300")">
+                                Pending (@pendingCount)
+                            </a>
+                            <a href="?filter=accepted" class="px-3 py-1 text-sm rounded @(filter == "accepted" ? "bg-green-500 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300")">
+                                Accepted (@acceptedCount)
+                            </a>
+                            <a href="?filter=declined" class="px-3 py-1 text-sm rounded @(filter == "declined" ? "bg-red-500 text-white" : "bg-gray-200 text-gray-700 hover:bg-gray-300")">
+                                Declined (@declinedCount)
+                            </a>
+                        </div>
+                    </div>
+
+                    @if (bookingRequests != null && bookingRequests.Any())
+                    {
+                        <div class="space-y-4">
+                            @foreach (var request in bookingRequests)
+                            {
+                                <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+                                    <div class="flex items-center justify-between mb-3">
+                                        <div>
+                                            <h3 class="font-semibold text-gray-900">@request.Room?.Property?.Name</h3>
+                                            <p class="text-sm text-gray-600">Room #@request.Room?.RoomNumber (@request.Room?.RoomType)</p>
+                                        </div>
+                                        <div class="text-right">
+                                            @switch (request.Status)
+                                            {
+                                                case StayShare.Models.BookingStatus.Pending:
+                                                    <span class="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Pending</span>
+                                                    break;
+                                                case StayShare.Models.BookingStatus.Accepted:
+                                                    <span class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Accepted</span>
+                                                    break;
+                                                case StayShare.Models.BookingStatus.Declined:
+                                                    <span class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full">Declined</span>
+                                                    break;
+                                            }
+                                        </div>
+                                    </div>
+                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                                        <div>
+                                            <span class="text-gray-500">Move-in:</span>
+                                            <p class="font-medium">@request.MoveInDate.ToString("MMM dd, yyyy")</p>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-500">Duration:</span>
+                                            <p class="font-medium">@request.Months months</p>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-500">Rent:</span>
+                                            <p class="font-medium">₹@request.Room?.RentPerMonth/month</p>
+                                        </div>
+                                        <div>
+                                            <span class="text-gray-500">Applied:</span>
+                                            <p class="font-medium">@request.CreatedAt.ToString("MMM dd")</p>
+                                        </div>
+                                    </div>
+                                    @if (!string.IsNullOrWhiteSpace(request.Note))
+                                    {
+                                        <div class="mt-3 p-3 bg-gray-50 rounded">
+                                            <span class="text-sm text-gray-500">Response:</span>
+                                            <p class="text-sm text-gray-800">@request.Note</p>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-8">
+                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+                            </svg>
+                            <h3 class="mt-2 text-sm font-medium text-gray-900">No booking requests</h3>
+                            <p class="mt-1 text-sm text-gray-500">Start by searching for properties and requesting to book.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Past Stays Section -->
+            <div>
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-xl font-bold text-gray-800 mb-4">Past Stays</h2>
+                    @if (pastStays != null && pastStays.Any())
+                    {
+                        <div class="space-y-4">
+                            @foreach (var stay in pastStays)
+                            {
+                                <div class="border border-gray-200 rounded-lg p-4">
+                                    <h3 class="font-semibold text-gray-900 mb-2">@stay.Room?.Property?.Name</h3>
+                                    <div class="space-y-1 text-sm text-gray-600">
+                                        <p><strong>Room:</strong> #@stay.Room?.RoomNumber (@stay.Room?.RoomType)</p>
+                                        <p><strong>Duration:</strong> @((stay.JoinedAt ?? stay.RequestedAt).ToString("MMM yyyy")) - @((stay.ExitDate ?? DateTime.UtcNow).ToString("MMM yyyy"))</p>
+                                        <p><strong>Rent:</strong> ₹@stay.Room?.RentPerMonth/month</p>
+                                    </div>
+                                    @if (stay.Status == StayShare.Models.OccupancyStatus.Left)
+                                    {
+                                        <span class="inline-block mt-2 bg-gray-100 text-gray-800 text-xs font-medium px-2 py-1 rounded">Completed</span>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="text-center py-8">
+                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <h3 class="mt-2 text-sm font-medium text-gray-900">No past stays</h3>
+                            <p class="mt-1 text-sm text-gray-500">Your completed stays will appear here.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

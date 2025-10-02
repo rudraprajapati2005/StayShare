@@ -185,20 +185,31 @@
                                             </span>
                                             @{
                                                 var roomToCurrent = ViewBag.RoomToCurrent as System.Collections.Generic.Dictionary<int, System.Collections.Generic.List<StayShare.Models.User>>;
+                                                var roomToUpcoming = ViewBag.RoomToUpcoming as System.Collections.Generic.Dictionary<int, System.Collections.Generic.List<(StayShare.Models.User user, System.DateTime? startDate)>>;
                                                 var current = roomToCurrent != null && roomToCurrent.ContainsKey(room.RoomId) ? roomToCurrent[room.RoomId] : new System.Collections.Generic.List<StayShare.Models.User>();
+                                                var upcoming = roomToUpcoming != null && roomToUpcoming.ContainsKey(room.RoomId) ? roomToUpcoming[room.RoomId] : new System.Collections.Generic.List<(StayShare.Models.User, System.DateTime?)>();
                                                 var currentCount = current?.Count ?? 0;
+                                                var upcomingCount = upcoming?.Count ?? 0;
+                                                var totalCommitted = currentCount + upcomingCount;
                                                 var capacity = room.Capacity;
                                             }
-                                            @if (currentCount >= capacity)
+                                            @if (totalCommitted >= capacity)
                                             {
                                                 <span class="bg-red-100 text-red-800 text-xs font-medium px-2 py-1 rounded">
-                                                    Full (@currentCount/@capacity)
+                                                    Full (@currentCount+@upcomingCount/@capacity)
                                                 </span>
                                             }
-                                            else if (currentCount > 0)
+                                            else if (totalCommitted > 0)
                                             {
                                                 <span class="bg-yellow-100 text-yellow-800 text-xs font-medium px-2 py-1 rounded">
-                                                    Partial (@currentCount/@capacity)
+                                                    @if (upcomingCount > 0)
+                                                    {
+                                                        <text>Reserved (@currentCount+@upcomingCount/@capacity)</text>
+                                                    }
+                                                    else
+                                                    {
+                                                        <text>Partial (@currentCount/@capacity)</text>
+                                                    }
                                                 </span>
                                             }
                                             else
@@ -218,10 +229,8 @@
                                             <p><strong>Amenities:</strong> @room.Amenities</p>
                                         }
                                         @{
-                                            var roomToUpcoming = ViewBag.RoomToUpcoming as System.Collections.Generic.Dictionary<int, System.Collections.Generic.List<(StayShare.Models.User user, System.DateTime? startDate)>>;
                                             var roomToViewerStatus = ViewBag.RoomToViewerStatus as System.Collections.Generic.Dictionary<int, string>;
                                             var roomToViewerBookingStatus = ViewBag.RoomToViewerBookingStatus as System.Collections.Generic.Dictionary<int, string>;
-                                            var upcoming = roomToUpcoming != null && roomToUpcoming.ContainsKey(room.RoomId) ? roomToUpcoming[room.RoomId] : new System.Collections.Generic.List<(StayShare.Models.User, System.DateTime?)>();
                                             var viewerStatus = roomToViewerStatus != null && roomToViewerStatus.ContainsKey(room.RoomId) ? roomToViewerStatus[room.RoomId] : null;
                                             var viewerBookingStatus = roomToViewerBookingStatus != null && roomToViewerBookingStatus.ContainsKey(room.RoomId) ? roomToViewerBookingStatus[room.RoomId] : null;
                                         }
