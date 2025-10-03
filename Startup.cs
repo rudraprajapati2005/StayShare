@@ -35,6 +35,7 @@ namespace StayShare
             services.AddScoped<IUserRepository, UserRepository>();
             services.AddScoped<IOccupancyRepository, OccupancyRepository>();
             services.AddScoped<IBookingRepository, BookingRepository>();
+            services.AddScoped<IParentLinkRepository, ParentLinkRepository>();
 
             // Register Unit of Work
             services.AddScoped<IUnitOfWork, UnitOfWork>();

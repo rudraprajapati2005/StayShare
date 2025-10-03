@@ -9,6 +9,7 @@ namespace StayShare.Repositories
         IUserRepository Users { get; }
         IOccupancyRepository Occupancies { get; }
         IBookingRepository Bookings { get; }
+        IParentLinkRepository ParentLinks { get; }
 
         Task<int> CommitAsync();
         void Dispose();

@@ -1,0 +1,116 @@
+@model StayShare.Models.ParentLink
+@{
+    ViewData["Title"] = "Send Parent Link Request";
+    var currentUser = ViewBag.CurrentUser as StayShare.Models.User;
+    var parents = ViewBag.Parents as IEnumerable<StayShare.Models.User>;
+}
+
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-link"></i> Send Parent Link Request
+                    </h4>
+                </div>
+                <div class="card-body">
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            @TempData["ErrorMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
+                    <form asp-action="Create" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        
+                        <div class="mb-3">
+                            <label asp-for="ParentId" class="form-label">Select Parent</label>
+                            <select asp-for="ParentId" class="form-select" required>
+                                <option value="">-- Select a Parent --</option>
+                                @if (parents != null)
+                                {
+                                    @foreach (var parent in parents)
+                                    {
+                                        <option value="@parent.UserId">@parent.FullName (@parent.Email)</option>
+                                    }
+                                }
+                            </select>
+                            <span asp-validation-for="ParentId" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="RelationshipType" class="form-label">Relationship</label>
+                            <select asp-for="RelationshipType" class="form-select" required>
+                                <option value="">-- Select Relationship --</option>
+                                <option value="@StayShare.Models.RelationshipType.Mother">Mother</option>
+                                <option value="@StayShare.Models.RelationshipType.Father">Father</option>
+                                <option value="@StayShare.Models.RelationshipType.Sister">Sister</option>
+                                <option value="@StayShare.Models.RelationshipType.Brother">Brother</option>
+                                <option value="@StayShare.Models.RelationshipType.Guardian">Guardian</option>
+                                <option value="@StayShare.Models.RelationshipType.Other">Other</option>
+                            </select>
+                            <span asp-validation-for="RelationshipType" class="text-danger"></span>
+                        </div>
+
+                        <div class="mb-3">
+                            <label asp-for="Message" class="form-label">Message (Optional)</label>
+                            <textarea asp-for="Message" class="form-control" rows="3" 
+                                      placeholder="Add a personal message to your parent link request..."></textarea>
+                            <span asp-validation-for="Message" class="text-danger"></span>
+                        </div>
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <a href="@Url.Action("Index", "ParentLink")" class="btn btn-secondary me-md-2">
+                                <i class="fas fa-arrow-left"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i> Send Request
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            @if (parents != null && parents.Any())
+            {
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">
+                            <i class="fas fa-info-circle"></i> Available Parents
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            @foreach (var parent in parents)
+                            {
+                                <div class="col-md-6 mb-3">
+                                    <div class="border rounded p-3">
+                                        <h6 class="mb-1">@parent.FullName</h6>
+                                        <p class="mb-1 text-muted">@parent.Email</p>
+                                        <small class="text-muted">Registered: @parent.CreatedAt.ToString("MMM dd, yyyy")</small>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info mt-4">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>No parents available:</strong> There are currently no users registered with the "Parent" role. 
+                    Parents need to register and select the "Parent" role to be available for parent link requests.
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
+

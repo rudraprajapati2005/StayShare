@@ -1,0 +1,236 @@
+@model IEnumerable<StayShare.Models.ParentLink>
+@{
+    ViewData["Title"] = "Parent Link Messages";
+    var currentUser = ViewBag.CurrentUser as StayShare.Models.User;
+    var pendingRequests = ViewBag.PendingRequests as IEnumerable<StayShare.Models.ParentLink>;
+    var sentRequests = ViewBag.SentRequests as IEnumerable<StayShare.Models.ParentLink>;
+    var acceptedLinks = ViewBag.AcceptedLinks as IEnumerable<StayShare.Models.ParentLink>;
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <h2 class="mb-4">Parent Link Messages</h2>
+            
+            @if (TempData["SuccessMessage"] != null)
+            {
+                <div class="alert alert-success alert-dismissible fade show" role="alert">
+                    @TempData["SuccessMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+            
+            @if (TempData["ErrorMessage"] != null)
+            {
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    @TempData["ErrorMessage"]
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            }
+
+            <!-- Action Buttons -->
+            <div class="mb-4">
+                @if (currentUser.Role == "Resident")
+                {
+                    <a href="@Url.Action("Create", "ParentLink")" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Send Parent Link Request
+                    </a>
+                }
+                else if (currentUser.Role == "Parent")
+                {
+                    <a href="@Url.Action("CreateFromParent", "ParentLink")" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Send Request to Resident
+                    </a>
+                    <a href="@Url.Action("Dashboard", "ParentLink")" class="btn btn-success">
+                        <i class="fas fa-tachometer-alt"></i> Parent Dashboard
+                    </a>
+                }
+            </div>
+
+            <!-- Pending Requests -->
+            @if (pendingRequests != null && pendingRequests.Any())
+            {
+                <div class="card mb-4">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0">
+                            <i class="fas fa-clock"></i> Pending Requests (@pendingRequests.Count())
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        @foreach (var request in pendingRequests)
+                        {
+                            <div class="border rounded p-3 mb-3">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <h6>
+                                            @if (request.ParentId == currentUser.UserId)
+                                            {
+                                                <span class="text-primary">Request to:</span> @request.Child.FullName
+                                                <small class="text-muted">(Resident)</small>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-primary">Request from:</span> @request.Parent.FullName
+                                                <small class="text-muted">(Parent)</small>
+                                            }
+                                        </h6>
+                                        <p class="mb-1"><strong>Relationship:</strong> @request.RelationshipType</p>
+                                        @if (!string.IsNullOrEmpty(request.Message))
+                                        {
+                                            <p class="mb-1"><strong>Message:</strong> @request.Message</p>
+                                        }
+                                        <small class="text-muted">Requested: @request.RequestedAt.ToString("MMM dd, yyyy HH:mm")</small>
+                                    </div>
+                                    <div class="col-md-4 text-end">
+                                        @if (request.ParentId == currentUser.UserId)
+                                        {
+                                            <span class="badge bg-info">Sent by you</span>
+                                        }
+                                        else
+                                        {
+                                            <form method="post" class="d-inline">
+                                                <button type="submit" formaction="@Url.Action("Accept", "ParentLink", new { id = request.ParentLinkId })" 
+                                                        class="btn btn-success btn-sm me-2">
+                                                    <i class="fas fa-check"></i> Accept
+                                                </button>
+                                                <button type="submit" formaction="@Url.Action("Decline", "ParentLink", new { id = request.ParentLinkId })" 
+                                                        class="btn btn-danger btn-sm">
+                                                    <i class="fas fa-times"></i> Decline
+                                                </button>
+                                            </form>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+            <!-- Accepted Links -->
+            @if (acceptedLinks != null && acceptedLinks.Any())
+            {
+                <div class="card mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-check-circle"></i> Accepted Links (@acceptedLinks.Count())
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        @foreach (var link in acceptedLinks)
+                        {
+                            <div class="border rounded p-3 mb-3">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <h6>
+                                            @if (link.ParentId == currentUser.UserId)
+                                            {
+                                                <span class="text-success">Linked with:</span> @link.Child.FullName
+                                                <small class="text-muted">(Resident)</small>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-success">Linked with:</span> @link.Parent.FullName
+                                                <small class="text-muted">(Parent)</small>
+                                            }
+                                        </h6>
+                                        <p class="mb-1"><strong>Relationship:</strong> @link.RelationshipType</p>
+                                        <small class="text-muted">Linked: @link.LinkedAt?.ToString("MMM dd, yyyy HH:mm")</small>
+                                    </div>
+                                    <div class="col-md-4 text-end">
+                                        @if (currentUser.Role == "Parent")
+                                        {
+                                            <a href="@Url.Action("ChildDetails", "ParentLink", new { id = link.ParentLinkId })" 
+                                               class="btn btn-info btn-sm">
+                                                <i class="fas fa-eye"></i> View Details
+                                            </a>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+            <!-- Sent Requests -->
+            @if (sentRequests != null && sentRequests.Any())
+            {
+                <div class="card mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-paper-plane"></i> Sent Requests (@sentRequests.Count())
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        @foreach (var request in sentRequests)
+                        {
+                            <div class="border rounded p-3 mb-3">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        <h6>
+                                            @if (request.ParentId == currentUser.UserId)
+                                            {
+                                                <span class="text-info">Request to:</span> @request.Child.FullName
+                                                <small class="text-muted">(Resident)</small>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-info">Request to:</span> @request.Parent.FullName
+                                                <small class="text-muted">(Parent)</small>
+                                            }
+                                        </h6>
+                                        <p class="mb-1"><strong>Relationship:</strong> @request.RelationshipType</p>
+                                        @if (!string.IsNullOrEmpty(request.Message))
+                                        {
+                                            <p class="mb-1"><strong>Message:</strong> @request.Message</p>
+                                        }
+                                        <small class="text-muted">Sent: @request.RequestedAt.ToString("MMM dd, yyyy HH:mm")</small>
+                                    </div>
+                                    <div class="col-md-4 text-end">
+                                        @switch (request.Status)
+                                        {
+                                            case StayShare.Models.ParentLinkStatus.Pending:
+                                                <span class="badge bg-warning">Pending</span>
+                                                break;
+                                            case StayShare.Models.ParentLinkStatus.Accepted:
+                                                <span class="badge bg-success">Accepted</span>
+                                                break;
+                                            case StayShare.Models.ParentLinkStatus.Declined:
+                                                <span class="badge bg-danger">Declined</span>
+                                                break;
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+            @if ((pendingRequests == null || !pendingRequests.Any()) && 
+                 (acceptedLinks == null || !acceptedLinks.Any()) && 
+                 (sentRequests == null || !sentRequests.Any()))
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+                    <h4 class="text-muted">No parent link requests found</h4>
+                    <p class="text-muted">You haven't sent or received any parent link requests yet.</p>
+                    @if (currentUser.Role == "Resident")
+                    {
+                        <a href="@Url.Action("Create", "ParentLink")" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Send Your First Request
+                        </a>
+                    }
+                    else if (currentUser.Role == "Parent")
+                    {
+                        <a href="@Url.Action("CreateFromParent", "ParentLink")" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Send Your First Request
+                        </a>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+

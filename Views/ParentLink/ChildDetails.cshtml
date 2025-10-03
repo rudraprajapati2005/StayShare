@@ -1,0 +1,211 @@
+@model StayShare.Models.ParentLink
+@{
+    ViewData["Title"] = "Child Details";
+    var parentLink = ViewBag.ParentLink as StayShare.Models.ParentLink;
+    var currentStay = ViewBag.CurrentStay as StayShare.Models.RoomOccupancy;
+    var pastStays = ViewBag.PastStays as IEnumerable<StayShare.Models.RoomOccupancy>;
+    var roommates = ViewBag.Roommates as IEnumerable<StayShare.Models.User>;
+    var currentUser = ViewBag.CurrentUser as StayShare.Models.User;
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    <i class="fas fa-user"></i> @parentLink.Child.FullName - Details
+                </h2>
+                <a href="@Url.Action("Dashboard", "ParentLink")" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Dashboard
+                </a>
+            </div>
+
+            <!-- Child Information -->
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle"></i> Basic Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Full Name:</strong> @parentLink.Child.FullName</p>
+                            <p><strong>Email:</strong> @parentLink.Child.Email</p>
+                            <p><strong>Role:</strong> @parentLink.Child.Role</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Relationship:</strong> @parentLink.RelationshipType</p>
+                            <p><strong>Linked Since:</strong> @parentLink.LinkedAt?.ToString("MMM dd, yyyy HH:mm")</p>
+                            <p><strong>Account Created:</strong> @parentLink.Child.CreatedAt.ToString("MMM dd, yyyy")</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Current Stay -->
+            @if (currentStay != null)
+            {
+                <div class="card mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-home"></i> Current Accommodation
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Property Details</h6>
+                                <p><strong>Property:</strong> @currentStay.Room?.Property?.Name</p>
+                                <p><strong>Address:</strong> @currentStay.Room?.Property?.Address</p>
+                                <p><strong>Room Number:</strong> @currentStay.Room?.RoomNumber</p>
+                                <p><strong>Room Type:</strong> @currentStay.Room?.RoomType</p>
+                                <p><strong>Capacity:</strong> @currentStay.Room?.Capacity persons</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Stay Information</h6>
+                                <p><strong>Move-in Date:</strong> @currentStay.JoinedAt?.ToString("MMM dd, yyyy")</p>
+                                <p><strong>Expected Exit:</strong> @currentStay.ExitDate?.ToString("MMM dd, yyyy")</p>
+                                <p><strong>Status:</strong> 
+                                    <span class="badge bg-success">Active</span>
+                                </p>
+                                @if (!string.IsNullOrEmpty(currentStay.Room?.Amenities))
+                                {
+                                    <p><strong>Amenities:</strong> @currentStay.Room.Amenities</p>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- Current Roommates -->
+                        @if (roommates != null && roommates.Any())
+                        {
+                            <hr>
+                            <h6>Current Roommates</h6>
+                            <div class="row">
+                                @foreach (var roommate in roommates)
+                                {
+                                    <div class="col-md-4 mb-2">
+                                        <div class="border rounded p-2">
+                                            <strong>@roommate.FullName</strong><br>
+                                            <small class="text-muted">@roommate.Email</small>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <hr>
+                            <p class="text-muted"><i class="fas fa-info-circle"></i> No other roommates currently staying in this room.</p>
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="card mb-4">
+                    <div class="card-header bg-warning text-dark">
+                        <h5 class="mb-0">
+                            <i class="fas fa-exclamation-triangle"></i> No Current Accommodation
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-0">@parentLink.Child.FullName is not currently staying in any accommodation.</p>
+                    </div>
+                </div>
+            }
+
+            <!-- Past Stays -->
+            @if (pastStays != null && pastStays.Any())
+            {
+                <div class="card mb-4">
+                    <div class="card-header bg-info text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-history"></i> Past Accommodations (@pastStays.Count())
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        @foreach (var stay in pastStays)
+                        {
+                            <div class="border rounded p-3 mb-3">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h6>@stay.Room?.Property?.Name - Room #@stay.Room?.RoomNumber</h6>
+                                        <p class="mb-1"><strong>Address:</strong> @stay.Room?.Property?.Address</p>
+                                        <p class="mb-1"><strong>Room Type:</strong> @stay.Room?.RoomType</p>
+                                        <p class="mb-1"><strong>Capacity:</strong> @stay.Room?.Capacity persons</p>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <p class="mb-1"><strong>Stayed From:</strong> @stay.JoinedAt?.ToString("MMM dd, yyyy")</p>
+                                        <p class="mb-1"><strong>Stayed Until:</strong> @stay.ExitDate?.ToString("MMM dd, yyyy")</p>
+                                        <p class="mb-1"><strong>Status:</strong> 
+                                            @switch (stay.Status)
+                                            {
+                                                case StayShare.Models.OccupancyStatus.Accepted:
+                                                    <span class="badge bg-success">Completed</span>
+                                                    break;
+                                                case StayShare.Models.OccupancyStatus.Left:
+                                                    <span class="badge bg-info">Left</span>
+                                                    break;
+                                                default:
+                                                    <span class="badge bg-secondary">@stay.Status</span>
+                                                    break;
+                                            }
+                                        </p>
+                                        @if (!string.IsNullOrEmpty(stay.Room?.Amenities))
+                                        {
+                                            <p class="mb-1"><strong>Amenities:</strong> @stay.Room.Amenities</p>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            else if (currentStay == null)
+            {
+                <div class="card mb-4">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0">
+                            <i class="fas fa-info-circle"></i> No Past Accommodations
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="mb-0">@parentLink.Child.FullName has no past accommodation history.</p>
+                    </div>
+                </div>
+            }
+
+            <!-- Summary Statistics -->
+            <div class="card">
+                <div class="card-header bg-dark text-white">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar"></i> Summary Statistics
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <h4 class="text-primary">@(pastStays?.Count() ?? 0)</h4>
+                            <p class="mb-0">Total Past Stays</p>
+                        </div>
+                        <div class="col-md-3">
+                            <h4 class="text-success">@(currentStay != null ? 1 : 0)</h4>
+                            <p class="mb-0">Current Stay</p>
+                        </div>
+                        <div class="col-md-3">
+                            <h4 class="text-info">@(roommates?.Count() ?? 0)</h4>
+                            <p class="mb-0">Current Roommates</p>
+                        </div>
+                        <div class="col-md-3">
+                            <h4 class="text-warning">@parentLink.RelationshipType</h4>
+                            <p class="mb-0">Relationship</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+

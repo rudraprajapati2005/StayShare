@@ -13,6 +13,7 @@ namespace StayShare.Repositories
         public IUserRepository Users { get; private set; }
         public IOccupancyRepository Occupancies { get; private set; }
         public IBookingRepository Bookings { get; private set; }
+        public IParentLinkRepository ParentLinks { get; private set; }
 
         public UnitOfWork(
             AppDbContext context,
@@ -20,7 +21,8 @@ namespace StayShare.Repositories
             IPropertyRepository propertyRepository,
             IUserRepository userRepository,
             IOccupancyRepository occupancyRepository,
-            IBookingRepository bookingRepository)
+            IBookingRepository bookingRepository,
+            IParentLinkRepository parentLinkRepository)
         {
             _context = context;
             Rooms = roomRepository;
@@ -28,6 +30,7 @@ namespace StayShare.Repositories
             Users = userRepository;
             Occupancies = occupancyRepository;
             Bookings = bookingRepository;
+            ParentLinks = parentLinkRepository;
         }
 
         public async Task<int> CommitAsync()

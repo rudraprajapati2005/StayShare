@@ -25,8 +25,8 @@ namespace StayShare.Models
         public string PasswordHash { get; set; }
 
         [Required(ErrorMessage = "Role is required")]
-        [RegularExpression("^(Host|Resident|Guardian)$", ErrorMessage = "Role must be Host, Resident, or Guardian")]
-        public string Role { get; set; } // "Host", "Resident", "Guardian"
+        [RegularExpression("^(Host|Resident|Guardian|Parent)$", ErrorMessage = "Role must be Host, Resident, Guardian, or Parent")]
+        public string Role { get; set; } // "Host", "Resident", "Guardian", "Parent"
         
         public bool IsVerified { get; set; }
         public DateTime CreatedAt { get; set; }

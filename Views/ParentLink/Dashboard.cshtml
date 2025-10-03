@@ -1,0 +1,133 @@
+@model IEnumerable<StayShare.Models.ParentLink>
+@{
+    ViewData["Title"] = "Parent Dashboard";
+    var currentUser = ViewBag.CurrentUser as StayShare.Models.User;
+    var acceptedLinks = ViewBag.AcceptedLinks as IEnumerable<StayShare.Models.ParentLink>;
+}
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>
+                    <i class="fas fa-tachometer-alt"></i> Parent Dashboard
+                </h2>
+                <div>
+                    <a href="@Url.Action("CreateFromParent", "ParentLink")" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Send Request to Resident
+                    </a>
+                    <a href="@Url.Action("Index", "ParentLink")" class="btn btn-secondary">
+                        <i class="fas fa-inbox"></i> Messages
+                    </a>
+                </div>
+            </div>
+
+            @if (acceptedLinks != null && acceptedLinks.Any())
+            {
+                <div class="row">
+                    @foreach (var link in acceptedLinks)
+                    {
+                        <div class="col-md-6 col-lg-4 mb-4">
+                            <div class="card h-100">
+                                <div class="card-header bg-success text-white">
+                                    <h5 class="mb-0">
+                                        <i class="fas fa-user"></i> @link.Child.FullName
+                                    </h5>
+                                </div>
+                                <div class="card-body">
+                                    <p class="mb-2">
+                                        <strong>Relationship:</strong> @link.RelationshipType
+                                    </p>
+                                    <p class="mb-2">
+                                        <strong>Email:</strong> @link.Child.Email
+                                    </p>
+                                    <p class="mb-2">
+                                        <strong>Linked Since:</strong> @link.LinkedAt?.ToString("MMM dd, yyyy")
+                                    </p>
+                                    
+                                    @{
+                                        var currentStay = link.Child.RoomOccupancies?.FirstOrDefault(o => o.IsActive && o.JoinedAt.HasValue && o.JoinedAt.Value <= DateTime.UtcNow);
+                                    }
+                                    
+                                    @if (currentStay != null)
+                                    {
+                                        <div class="alert alert-info">
+                                            <strong>Current Stay:</strong><br>
+                                            Room #@currentStay.Room?.RoomNumber<br>
+                                            @currentStay.Room?.Property?.Name<br>
+                                            <small>Since: @currentStay.JoinedAt?.ToString("MMM dd, yyyy")</small>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="alert alert-warning">
+                                            <i class="fas fa-exclamation-triangle"></i>
+                                            <strong>No current accommodation</strong>
+                                        </div>
+                                    }
+                                </div>
+                                <div class="card-footer">
+                                    <a href="@Url.Action("ChildDetails", "ParentLink", new { id = link.ParentLinkId })" 
+                                       class="btn btn-primary btn-sm w-100">
+                                        <i class="fas fa-eye"></i> View Full Details
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="text-center py-5">
+                    <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                    <h4 class="text-muted">No linked children yet</h4>
+                    <p class="text-muted">You haven't been linked with any residents yet. Send a request to get started!</p>
+                    <a href="@Url.Action("CreateFromParent", "ParentLink")" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Send Your First Request
+                    </a>
+                </div>
+            }
+
+            <!-- Quick Stats -->
+            @if (acceptedLinks != null && acceptedLinks.Any())
+            {
+                <div class="row mt-4">
+                    <div class="col-md-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h3 class="text-success">@acceptedLinks.Count()</h3>
+                                <p class="mb-0">Linked Children</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h3 class="text-info">@acceptedLinks.Count(l => l.Child.RoomOccupancies?.Any(o => o.IsActive && o.JoinedAt.HasValue && o.JoinedAt.Value <= DateTime.UtcNow) == true)</h3>
+                                <p class="mb-0">Currently Staying</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h3 class="text-warning">@acceptedLinks.Count(l => l.Child.RoomOccupancies?.Any(o => o.IsActive && o.JoinedAt.HasValue && o.JoinedAt.Value <= DateTime.UtcNow) != true)</h3>
+                                <p class="mb-0">Not Staying</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h3 class="text-primary">@acceptedLinks.Count(l => l.RelationshipType == StayShare.Models.RelationshipType.Mother || l.RelationshipType == StayShare.Models.RelationshipType.Father)</h3>
+                                <p class="mb-0">Direct Children</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
