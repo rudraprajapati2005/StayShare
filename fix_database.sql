@@ -53,3 +53,63 @@ END
 
 PRINT 'Database schema update completed successfully!';
 
+
+-- Ensure ParentLinks table has new columns expected by the model
+IF OBJECT_ID(N'[ParentLinks]', N'U') IS NOT NULL
+BEGIN
+    -- Make LinkedAt nullable if not already
+    IF EXISTS (
+        SELECT 1 FROM sys.columns 
+        WHERE object_id = OBJECT_ID(N'[ParentLinks]') AND name = 'LinkedAt' AND is_nullable = 0
+    )
+    BEGIN
+        ALTER TABLE [ParentLinks] ALTER COLUMN [LinkedAt] datetime2 NULL;
+        PRINT 'Altered ParentLinks.LinkedAt to be NULL';
+    END
+
+    -- Add Message
+    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[ParentLinks]') AND name = 'Message')
+    BEGIN
+        ALTER TABLE [ParentLinks] ADD [Message] nvarchar(500) NULL;
+        PRINT 'Added ParentLinks.Message';
+    END
+
+    -- Add RelationshipType
+    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[ParentLinks]') AND name = 'RelationshipType')
+    BEGIN
+        ALTER TABLE [ParentLinks] ADD [RelationshipType] int NOT NULL DEFAULT 0;
+        PRINT 'Added ParentLinks.RelationshipType';
+    END
+
+    -- Add RequestedAt
+    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[ParentLinks]') AND name = 'RequestedAt')
+    BEGIN
+        ALTER TABLE [ParentLinks] ADD [RequestedAt] datetime2 NOT NULL DEFAULT GETUTCDATE();
+        PRINT 'Added ParentLinks.RequestedAt';
+    END
+
+    -- Add RespondedAt
+    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[ParentLinks]') AND name = 'RespondedAt')
+    BEGIN
+        ALTER TABLE [ParentLinks] ADD [RespondedAt] datetime2 NULL;
+        PRINT 'Added ParentLinks.RespondedAt';
+    END
+
+    -- Add ResponseMessage
+    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[ParentLinks]') AND name = 'ResponseMessage')
+    BEGIN
+        ALTER TABLE [ParentLinks] ADD [ResponseMessage] nvarchar(500) NULL;
+        PRINT 'Added ParentLinks.ResponseMessage';
+    END
+
+    -- Add Status
+    IF NOT EXISTS (SELECT 1 FROM sys.columns WHERE object_id = OBJECT_ID(N'[ParentLinks]') AND name = 'Status')
+    BEGIN
+        ALTER TABLE [ParentLinks] ADD [Status] int NOT NULL DEFAULT 0;
+        PRINT 'Added ParentLinks.Status';
+    END
+END
+ELSE
+BEGIN
+    PRINT 'ParentLinks table not found; skipping ParentLinks fixes.';
+END

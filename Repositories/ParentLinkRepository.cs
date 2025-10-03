@@ -96,9 +96,39 @@ namespace StayShare.Repositories
 
         public async Task<IEnumerable<User>> GetUsersByRoleAsync(string role)
         {
+            var normalizedRole = (role ?? string.Empty).Trim().ToLower();
             return await _context.Users
-                .Where(u => u.Role == role)
+                .Where(u => (u.Role ?? "").Trim().ToLower() == normalizedRole)
                 .OrderBy(u => u.FullName)
+                .ThenBy(u => u.Email)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<User>> SearchUsersByRoleAsync(string role, string query, int? excludeUserId = null)
+        {
+            var normalizedRole = (role ?? string.Empty).Trim().ToLower();
+            var term = (query ?? string.Empty).Trim().ToLower();
+
+            var queryable = _context.Users.AsQueryable();
+
+            queryable = queryable.Where(u => (u.Role ?? "").Trim().ToLower() == normalizedRole);
+
+            if (excludeUserId.HasValue)
+            {
+                queryable = queryable.Where(u => u.UserId != excludeUserId.Value);
+            }
+
+            if (!string.IsNullOrWhiteSpace(term))
+            {
+                queryable = queryable.Where(u =>
+                    (!string.IsNullOrEmpty(u.FullName) && u.FullName.ToLower().Contains(term)) ||
+                    (!string.IsNullOrEmpty(u.Email) && u.Email.ToLower().Contains(term))
+                );
+            }
+
+            return await queryable
+                .OrderBy(u => u.FullName)
+                .ThenBy(u => u.Email)
                 .ToListAsync();
         }
 

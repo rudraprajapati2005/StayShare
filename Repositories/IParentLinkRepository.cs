@@ -16,6 +16,7 @@ namespace StayShare.Repositories
         Task UpdateAsync(ParentLink parentLink);
         Task DeleteAsync(int id);
         Task<IEnumerable<User>> GetUsersByRoleAsync(string role);
+        Task<IEnumerable<User>> SearchUsersByRoleAsync(string role, string query, int? excludeUserId = null);
         Task<bool> HasExistingRequestAsync(int parentId, int childId);
     }
 }

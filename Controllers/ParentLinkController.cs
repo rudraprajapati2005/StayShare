@@ -46,7 +46,7 @@ namespace StayShare.Controllers
         }
 
         // GET: /ParentLink/Create - Show form to create parent link request
-        public async Task<IActionResult> Create()
+        public async Task<IActionResult> Create(string q)
         {
             if (!User.Identity.IsAuthenticated)
             {
@@ -60,18 +60,20 @@ namespace StayShare.Controllers
                 return RedirectToAction("Login", "Auth");
             }
 
-            // Get all users with Parent role
-            var parents = await _unitOfWork.ParentLinks.GetUsersByRoleAsync("Parent");
-            
-            ViewBag.Parents = parents;
+            // Simplified email flow: no listing
+            ViewBag.Parents = null;
+            ViewBag.ParentsCount = 0;
             ViewBag.CurrentUser = user;
+            ViewBag.Query = q;
+            var pendingRequests = await _unitOfWork.ParentLinks.GetPendingRequestsForUserAsync(user.UserId);
+            ViewBag.PendingRequests = pendingRequests;
 
             return View(new ParentLink { ChildId = user.UserId });
         }
 
         // POST: /ParentLink/Create
         [HttpPost]
-        public async Task<IActionResult> Create(ParentLink model)
+        public async Task<IActionResult> Create(ParentLink model, string q, string parentEmail)
         {
             if (!User.Identity.IsAuthenticated)
             {
@@ -85,16 +87,38 @@ namespace StayShare.Controllers
                 return RedirectToAction("Login", "Auth");
             }
 
+            // Validate email input
+            if (string.IsNullOrWhiteSpace(parentEmail))
+            {
+                ModelState.AddModelError("parentEmail", "Please enter a guardian email.");
+            }
+            var selectedParent = string.IsNullOrWhiteSpace(parentEmail) ? null : await _unitOfWork.Users.GetUserByEmailAsync(parentEmail.Trim());
+            if (selectedParent == null && !string.IsNullOrWhiteSpace(parentEmail))
+            {
+                ModelState.AddModelError("parentEmail", "This email was not found.");
+            }
+            else if (selectedParent != null && !string.Equals(selectedParent.Role?.Trim(), "Guardian", StringComparison.OrdinalIgnoreCase))
+            {
+                ModelState.AddModelError("parentEmail", "This user is not registered as Guardian.");
+            }
+            else if (selectedParent != null && selectedParent.UserId == user.UserId)
+            {
+                ModelState.AddModelError("parentEmail", "You cannot enter your own email.");
+            }
+
             if (!ModelState.IsValid)
             {
-                var parents = await _unitOfWork.ParentLinks.GetUsersByRoleAsync("Parent");
-                ViewBag.Parents = parents;
+                ViewBag.Parents = null;
+                ViewBag.ParentsCount = 0;
                 ViewBag.CurrentUser = user;
+                ViewBag.Query = q;
+                var pendingRequests = await _unitOfWork.ParentLinks.GetPendingRequestsForUserAsync(user.UserId);
+                ViewBag.PendingRequests = pendingRequests;
                 return View(model);
             }
 
             // Check if request already exists
-            var existingRequest = await _unitOfWork.ParentLinks.HasExistingRequestAsync(model.ParentId, user.UserId);
+            var existingRequest = await _unitOfWork.ParentLinks.HasExistingRequestAsync(selectedParent.UserId, user.UserId);
             if (existingRequest)
             {
                 TempData["ErrorMessage"] = "A request already exists between you and this parent.";
@@ -102,6 +126,7 @@ namespace StayShare.Controllers
             }
 
             model.ChildId = user.UserId;
+            model.ParentId = selectedParent.UserId;
             model.Status = ParentLinkStatus.Pending;
             model.RequestedAt = DateTime.UtcNow;
 
@@ -112,72 +137,6 @@ namespace StayShare.Controllers
             return RedirectToAction("Index");
         }
 
-        // GET: /ParentLink/CreateFromParent - Show form for parent to create request to child
-        public async Task<IActionResult> CreateFromParent()
-        {
-            if (!User.Identity.IsAuthenticated)
-            {
-                return RedirectToAction("Login", "Auth");
-            }
-
-            var userEmail = User.FindFirst(ClaimTypes.Email)?.Value ?? "";
-            var user = await _unitOfWork.Users.GetUserByEmailAsync(userEmail);
-            if (user == null || user.Role != "Parent")
-            {
-                return RedirectToAction("Index1", "Home");
-            }
-
-            // Get all users with Resident role
-            var residents = await _unitOfWork.ParentLinks.GetUsersByRoleAsync("Resident");
-            
-            ViewBag.Residents = residents;
-            ViewBag.CurrentUser = user;
-
-            return View(new ParentLink { ParentId = user.UserId });
-        }
-
-        // POST: /ParentLink/CreateFromParent
-        [HttpPost]
-        public async Task<IActionResult> CreateFromParent(ParentLink model)
-        {
-            if (!User.Identity.IsAuthenticated)
-            {
-                return RedirectToAction("Login", "Auth");
-            }
-
-            var userEmail = User.FindFirst(ClaimTypes.Email)?.Value ?? "";
-            var user = await _unitOfWork.Users.GetUserByEmailAsync(userEmail);
-            if (user == null || user.Role != "Parent")
-            {
-                return RedirectToAction("Index1", "Home");
-            }
-
-            if (!ModelState.IsValid)
-            {
-                var residents = await _unitOfWork.ParentLinks.GetUsersByRoleAsync("Resident");
-                ViewBag.Residents = residents;
-                ViewBag.CurrentUser = user;
-                return View(model);
-            }
-
-            // Check if request already exists
-            var existingRequest = await _unitOfWork.ParentLinks.HasExistingRequestAsync(user.UserId, model.ChildId);
-            if (existingRequest)
-            {
-                TempData["ErrorMessage"] = "A request already exists between you and this resident.";
-                return RedirectToAction("CreateFromParent");
-            }
-
-            model.ParentId = user.UserId;
-            model.Status = ParentLinkStatus.Pending;
-            model.RequestedAt = DateTime.UtcNow;
-
-            await _unitOfWork.ParentLinks.AddAsync(model);
-            await _unitOfWork.CommitAsync();
-
-            TempData["SuccessMessage"] = "Parent link request sent successfully.";
-            return RedirectToAction("Index");
-        }
 
         // POST: /ParentLink/Accept/5
         [HttpPost]
@@ -266,7 +225,7 @@ namespace StayShare.Controllers
 
             var userEmail = User.FindFirst(ClaimTypes.Email)?.Value ?? "";
             var user = await _unitOfWork.Users.GetUserByEmailAsync(userEmail);
-            if (user == null || user.Role != "Parent")
+            if (user == null || !string.Equals(user.Role?.Trim(), "Guardian", StringComparison.OrdinalIgnoreCase))
             {
                 return RedirectToAction("Index1", "Home");
             }

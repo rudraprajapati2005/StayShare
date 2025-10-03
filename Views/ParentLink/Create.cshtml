@@ -5,16 +5,28 @@
     var parents = ViewBag.Parents as IEnumerable<StayShare.Models.User>;
 }
 
+<link rel="stylesheet" href="~/css/parentlink.css" />
+
 <div class="container mt-4">
     <div class="row justify-content-center">
         <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
+            <div class="pl-card">
+                <div class="pl-card-header">
                     <h4 class="mb-0">
                         <i class="fas fa-link"></i> Send Parent Link Request
                     </h4>
                 </div>
-                <div class="card-body">
+                <div class="pl-card-body">
+                    <!-- Simplified: no search/list -->
+
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                            @TempData["SuccessMessage"]
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    }
+
                     @if (TempData["ErrorMessage"] != null)
                     {
                         <div class="alert alert-danger alert-dismissible fade show" role="alert">
@@ -23,27 +35,18 @@
                         </div>
                     }
 
-                    <form asp-action="Create" method="post">
+                    <form asp-action="Create" method="post" id="pl-create-form">
                         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                        
                         <div class="mb-3">
-                            <label asp-for="ParentId" class="form-label">Select Parent</label>
-                            <select asp-for="ParentId" class="form-select" required>
-                                <option value="">-- Select a Parent --</option>
-                                @if (parents != null)
-                                {
-                                    @foreach (var parent in parents)
-                                    {
-                                        <option value="@parent.UserId">@parent.FullName (@parent.Email)</option>
-                                    }
-                                }
-                            </select>
-                            <span asp-validation-for="ParentId" class="text-danger"></span>
+                            <label class="pl-label">Guardian Email</label>
+                            <input type="email" name="parentEmail" class="pl-input" placeholder="guardian@example.com" required />
+                            <span class="text-danger" data-valmsg-for="parentEmail" data-valmsg-replace="true"></span>
                         </div>
+                        
 
                         <div class="mb-3">
-                            <label asp-for="RelationshipType" class="form-label">Relationship</label>
-                            <select asp-for="RelationshipType" class="form-select" required>
+                            <label asp-for="RelationshipType" class="pl-label">Relationship</label>
+                            <select asp-for="RelationshipType" class="pl-select" required>
                                 <option value="">-- Select Relationship --</option>
                                 <option value="@StayShare.Models.RelationshipType.Mother">Mother</option>
                                 <option value="@StayShare.Models.RelationshipType.Father">Father</option>
@@ -56,17 +59,17 @@
                         </div>
 
                         <div class="mb-3">
-                            <label asp-for="Message" class="form-label">Message (Optional)</label>
-                            <textarea asp-for="Message" class="form-control" rows="3" 
+                            <label asp-for="Message" class="pl-label">Message (Optional)</label>
+                            <textarea asp-for="Message" class="pl-textarea" rows="3" 
                                       placeholder="Add a personal message to your parent link request..."></textarea>
                             <span asp-validation-for="Message" class="text-danger"></span>
                         </div>
 
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                            <a href="@Url.Action("Index", "ParentLink")" class="btn btn-secondary me-md-2">
+                            <a href="@Url.Action("Index", "ParentLink")" class="pl-btn pl-btn-secondary me-md-2">
                                 <i class="fas fa-arrow-left"></i> Cancel
                             </a>
-                            <button type="submit" class="btn btn-primary">
+                            <button type="submit" class="pl-btn pl-btn-primary">
                                 <i class="fas fa-paper-plane"></i> Send Request
                             </button>
                         </div>
@@ -74,36 +77,32 @@
                 </div>
             </div>
 
-            @if (parents != null && parents.Any())
+            <!-- Listing removed for simplified flow -->
+
+            @{ var pending = ViewBag.PendingRequests as IEnumerable<StayShare.Models.ParentLink>; }
+            @if (pending != null && pending.Any())
             {
-                <div class="card mt-4">
-                    <div class="card-header">
+                <div class="pl-card mt-4">
+                    <div class="pl-card-header">
                         <h5 class="mb-0">
-                            <i class="fas fa-info-circle"></i> Available Parents
+                            <i class="fas fa-hourglass-half"></i> Your Pending Requests
                         </h5>
                     </div>
-                    <div class="card-body">
-                        <div class="row">
-                            @foreach (var parent in parents)
+                    <div class="pl-card-body">
+                        <ul class="list-group">
+                            @foreach (var pr in pending)
                             {
-                                <div class="col-md-6 mb-3">
-                                    <div class="border rounded p-3">
-                                        <h6 class="mb-1">@parent.FullName</h6>
-                                        <p class="mb-1 text-muted">@parent.Email</p>
-                                        <small class="text-muted">Registered: @parent.CreatedAt.ToString("MMM dd, yyyy")</small>
-                                    </div>
-                                </div>
+                                var otherUser = pr.ParentId == currentUser.UserId ? pr.Child : pr.Parent;
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>
+                                        @otherUser?.FullName (@otherUser?.Email)
+                                        <small class="text-muted"> · @pr.RequestedAt.ToLocalTime().ToString("MMM dd, yyyy HH:mm")</small>
+                                    </span>
+                                    <span class="badge bg-warning text-dark">Pending</span>
+                                </li>
                             }
-                        </div>
+                        </ul>
                     </div>
-                </div>
-            }
-            else
-            {
-                <div class="alert alert-info mt-4">
-                    <i class="fas fa-info-circle"></i>
-                    <strong>No parents available:</strong> There are currently no users registered with the "Parent" role. 
-                    Parents need to register and select the "Parent" role to be available for parent link requests.
                 </div>
             }
         </div>
@@ -112,5 +111,6 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script src="~/js/parentlink-create.js"></script>
 }
 
