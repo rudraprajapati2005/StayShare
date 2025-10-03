@@ -7,9 +7,16 @@
 
 <link rel="stylesheet" href="~/css/parentlink.css" />
 
-<div class="container mt-4">
+<div class="container pl-page">
     <div class="row justify-content-center">
         <div class="col-md-8">
+            <div class="pl-hero">
+                <i class="fas fa-user-shield fa-lg"></i>
+                <div>
+                    <h3>Send Parent Link Request</h3>
+                    <p>Enter your guardian's email, choose the relationship, and add an optional note.</p>
+                </div>
+            </div>
             <div class="pl-card">
                 <div class="pl-card-header">
                     <h4 class="mb-0">
@@ -17,6 +24,8 @@
                     </h4>
                 </div>
                 <div class="pl-card-body">
+                    <div class="row">
+                        <div class="col-md-7">
                     <!-- Simplified: no search/list -->
 
                     @if (TempData["SuccessMessage"] != null)
@@ -37,8 +46,9 @@
 
                     <form asp-action="Create" method="post" id="pl-create-form">
                         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                        <div class="mb-3">
+                        <div class="mb-3 pl-input-wrap">
                             <label class="pl-label">Guardian Email</label>
+                            <i class="fas fa-envelope pl-leading-icon"></i>
                             <input type="email" name="parentEmail" class="pl-input" placeholder="guardian@example.com" required />
                             <span class="text-danger" data-valmsg-for="parentEmail" data-valmsg-replace="true"></span>
                         </div>
@@ -74,6 +84,17 @@
                             </button>
                         </div>
                     </form>
+                        </div>
+                        <div class="col-md-5">
+                            <div class="pl-divider"></div>
+                            <ul class="pl-hint-list">
+                                <li><i class="fas fa-check-circle"></i><span>We’ll notify your guardian by email.</span></li>
+                                <li><i class="fas fa-check-circle"></i><span>Only Guardians can accept or decline.</span></li>
+                                <li><i class="fas fa-check-circle"></i><span>You can delete pending requests anytime.</span></li>
+                            </ul>
+                            <p class="pl-muted mt-2">Tip: Use the same email your guardian used during signup.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 

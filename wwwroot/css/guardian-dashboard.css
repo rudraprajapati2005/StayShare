@@ -1,0 +1,33 @@
+/* Guardian Dashboard styles */
+.gd-container { padding-top: 1rem; padding-bottom: 2rem; }
+.gd-header { background: #ffffff; border: 1px solid #ffedd5; border-left: 4px solid #fb923c; border-radius: .5rem; padding: 1rem 1.25rem; margin-bottom: 1rem; }
+.gd-header h2 { margin: 0; font-size: 1.5rem; color: #1f2937; display: flex; align-items: center; gap: .5rem; }
+.gd-actions a { margin-left: .5rem; }
+
+.gd-grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 1rem; }
+.gd-col-4 { grid-column: span 12; }
+@media(min-width: 768px){ .gd-col-4 { grid-column: span 6; } }
+@media(min-width: 992px){ .gd-col-4 { grid-column: span 4; } }
+
+.gd-card { background: #ffffff; border: 1px solid #e5e7eb; border-radius: .5rem; overflow: hidden; transition: transform .15s ease, box-shadow .15s ease; }
+.gd-card:hover { transform: translateY(-2px); box-shadow: 0 10px 20px rgba(0,0,0,.06); }
+.gd-card-header { background: #10b981; color: #ffffff; padding: .75rem 1rem; display: flex; align-items: center; gap: .5rem; }
+.gd-card-body { padding: 1rem; }
+.gd-card-footer { padding: .75rem 1rem; border-top: 1px solid #e5e7eb; background: #fafafa; }
+.gd-meta { margin: 0 0 .35rem 0; font-size: .95rem; color: #374151; }
+.gd-muted { color: #6b7280; font-size: .85rem; }
+
+.gd-alert-info { background: #ecfeff; color: #064e3b; border: 1px solid #99f6e4; border-radius: .375rem; padding: .75rem 1rem; }
+.gd-alert-warn { background: #fff7ed; color: #7c2d12; border: 1px solid #fed7aa; border-radius: .375rem; padding: .75rem 1rem; }
+
+.gd-stats { display: grid; grid-template-columns: repeat(12, 1fr); gap: 1rem; margin-top: 1rem; }
+.gd-stat { grid-column: span 12; background: #ffffff; border: 1px solid #e5e7eb; border-radius: .5rem; text-align: center; padding: .75rem; }
+@media(min-width: 768px){ .gd-stat { grid-column: span 3; } }
+.gd-number { font-size: 1.5rem; font-weight: 700; margin: 0; }
+.gd-label { margin: 0; color: #6b7280; }
+
+.gd-empty { text-align: center; padding: 3rem 0; color: #6b7280; background: #ffffff; border: 1px dashed #e5e7eb; border-radius: .5rem; }
+.gd-empty i { color: #9ca3af; }
+
+.gd-pill { display: inline-flex; align-items: center; gap: .4rem; background: #fffbeb; color: #92400e; border: 1px solid #fde68a; border-radius: 999px; padding: .25rem .6rem; font-size: .8rem; }
+

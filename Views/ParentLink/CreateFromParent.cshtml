@@ -25,20 +25,10 @@
 
                     <form asp-action="CreateFromParent" method="post">
                         <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-                        
                         <div class="mb-3">
-                            <label asp-for="ChildId" class="form-label">Select Resident</label>
-                            <select asp-for="ChildId" class="form-select" required>
-                                <option value="">-- Select a Resident --</option>
-                                @if (residents != null)
-                                {
-                                    @foreach (var resident in residents)
-                                    {
-                                        <option value="@resident.UserId">@resident.FullName (@resident.Email)</option>
-                                    }
-                                }
-                            </select>
-                            <span asp-validation-for="ChildId" class="text-danger"></span>
+                            <label class="form-label">Resident Email</label>
+                            <input type="email" name="childEmail" class="form-control" placeholder="resident@example.com" required />
+                            <span class="text-danger" data-valmsg-for="childEmail" data-valmsg-replace="true"></span>
                         </div>
 
                         <div class="mb-3">
@@ -74,38 +64,7 @@
                 </div>
             </div>
 
-            @if (residents != null && residents.Any())
-            {
-                <div class="card mt-4">
-                    <div class="card-header">
-                        <h5 class="mb-0">
-                            <i class="fas fa-info-circle"></i> Available Residents
-                        </h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            @foreach (var resident in residents)
-                            {
-                                <div class="col-md-6 mb-3">
-                                    <div class="border rounded p-3">
-                                        <h6 class="mb-1">@resident.FullName</h6>
-                                        <p class="mb-1 text-muted">@resident.Email</p>
-                                        <small class="text-muted">Registered: @resident.CreatedAt.ToString("MMM dd, yyyy")</small>
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                    </div>
-                </div>
-            }
-            else
-            {
-                <div class="alert alert-info mt-4">
-                    <i class="fas fa-info-circle"></i>
-                    <strong>No residents available:</strong> There are currently no users registered with the "Resident" role. 
-                    Residents need to register and select the "Resident" role to be available for parent link requests.
-                </div>
-            }
+            
         </div>
     </div>
 </div>

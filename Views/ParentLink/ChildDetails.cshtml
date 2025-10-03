@@ -8,26 +8,25 @@
     var currentUser = ViewBag.CurrentUser as StayShare.Models.User;
 }
 
+<link rel="stylesheet" href="~/css/guardian-dashboard.css" />
+
 <div class="container mt-4">
     <div class="row">
         <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h2>
-                    <i class="fas fa-user"></i> @parentLink.Child.FullName - Details
-                </h2>
-                <a href="@Url.Action("Dashboard", "ParentLink")" class="btn btn-secondary">
+            <div class="gd-header d-flex justify-content-between align-items-center mb-4">
+                <h2><i class="fas fa-user"></i> @parentLink.Child.FullName - Details</h2>
+                <a href="@Url.Action("Dashboard", "ParentLink")" class="btn btn-outline-secondary btn-sm">
                     <i class="fas fa-arrow-left"></i> Back to Dashboard
                 </a>
             </div>
 
             <!-- Child Information -->
-            <div class="card mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-info-circle"></i> Basic Information
-                    </h5>
+            <div class="gd-card mb-4">
+                <div class="gd-card-header" style="background:#3b82f6">
+                    <i class="fas fa-info-circle"></i>
+                    <strong>Basic Information</strong>
                 </div>
-                <div class="card-body">
+                <div class="gd-card-body">
                     <div class="row">
                         <div class="col-md-6">
                             <p><strong>Full Name:</strong> @parentLink.Child.FullName</p>
@@ -46,13 +45,12 @@
             <!-- Current Stay -->
             @if (currentStay != null)
             {
-                <div class="card mb-4">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0">
-                            <i class="fas fa-home"></i> Current Accommodation
-                        </h5>
+                <div class="gd-card mb-4">
+                    <div class="gd-card-header">
+                        <i class="fas fa-home"></i>
+                        <strong>Current Accommodation</strong>
                     </div>
-                    <div class="card-body">
+                    <div class="gd-card-body">
                         <div class="row">
                             <div class="col-md-6">
                                 <h6>Property Details</h6>
@@ -103,13 +101,12 @@
             }
             else
             {
-                <div class="card mb-4">
-                    <div class="card-header bg-warning text-dark">
-                        <h5 class="mb-0">
-                            <i class="fas fa-exclamation-triangle"></i> No Current Accommodation
-                        </h5>
+                <div class="gd-card mb-4">
+                    <div class="gd-card-header" style="background:#f59e0b">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>No Current Accommodation</strong>
                     </div>
-                    <div class="card-body">
+                    <div class="gd-card-body">
                         <p class="mb-0">@parentLink.Child.FullName is not currently staying in any accommodation.</p>
                     </div>
                 </div>
@@ -118,13 +115,12 @@
             <!-- Past Stays -->
             @if (pastStays != null && pastStays.Any())
             {
-                <div class="card mb-4">
-                    <div class="card-header bg-info text-white">
-                        <h5 class="mb-0">
-                            <i class="fas fa-history"></i> Past Accommodations (@pastStays.Count())
-                        </h5>
+                <div class="gd-card mb-4">
+                    <div class="gd-card-header" style="background:#06b6d4">
+                        <i class="fas fa-history"></i>
+                        <strong>Past Accommodations (@pastStays.Count())</strong>
                     </div>
-                    <div class="card-body">
+                    <div class="gd-card-body">
                         @foreach (var stay in pastStays)
                         {
                             <div class="border rounded p-3 mb-3">
@@ -165,44 +161,34 @@
             }
             else if (currentStay == null)
             {
-                <div class="card mb-4">
-                    <div class="card-header bg-secondary text-white">
-                        <h5 class="mb-0">
-                            <i class="fas fa-info-circle"></i> No Past Accommodations
-                        </h5>
+                <div class="gd-card mb-4">
+                    <div class="gd-card-header" style="background:#6b7280">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>No Past Accommodations</strong>
                     </div>
-                    <div class="card-body">
+                    <div class="gd-card-body">
                         <p class="mb-0">@parentLink.Child.FullName has no past accommodation history.</p>
                     </div>
                 </div>
             }
 
             <!-- Summary Statistics -->
-            <div class="card">
-                <div class="card-header bg-dark text-white">
-                    <h5 class="mb-0">
-                        <i class="fas fa-chart-bar"></i> Summary Statistics
-                    </h5>
+            <div class="gd-stats">
+                <div class="gd-stat">
+                    <p class="gd-number text-primary">@(pastStays?.Count() ?? 0)</p>
+                    <p class="gd-label">Total Past Stays</p>
                 </div>
-                <div class="card-body">
-                    <div class="row text-center">
-                        <div class="col-md-3">
-                            <h4 class="text-primary">@(pastStays?.Count() ?? 0)</h4>
-                            <p class="mb-0">Total Past Stays</p>
-                        </div>
-                        <div class="col-md-3">
-                            <h4 class="text-success">@(currentStay != null ? 1 : 0)</h4>
-                            <p class="mb-0">Current Stay</p>
-                        </div>
-                        <div class="col-md-3">
-                            <h4 class="text-info">@(roommates?.Count() ?? 0)</h4>
-                            <p class="mb-0">Current Roommates</p>
-                        </div>
-                        <div class="col-md-3">
-                            <h4 class="text-warning">@parentLink.RelationshipType</h4>
-                            <p class="mb-0">Relationship</p>
-                        </div>
-                    </div>
+                <div class="gd-stat">
+                    <p class="gd-number text-success">@(currentStay != null ? 1 : 0)</p>
+                    <p class="gd-label">Current Stay</p>
+                </div>
+                <div class="gd-stat">
+                    <p class="gd-number text-info">@(roommates?.Count() ?? 0)</p>
+                    <p class="gd-label">Current Roommates</p>
+                </div>
+                <div class="gd-stat">
+                    <p class="gd-number">@parentLink.RelationshipType</p>
+                    <p class="gd-label">Relationship</p>
                 </div>
             </div>
         </div>

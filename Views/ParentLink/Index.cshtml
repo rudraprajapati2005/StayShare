@@ -7,7 +7,9 @@
     var acceptedLinks = ViewBag.AcceptedLinks as IEnumerable<StayShare.Models.ParentLink>;
 }
 
-<div class="container mt-4">
+<link rel="stylesheet" href="~/css/parentlink.css" />
+
+<div class="container pl-page">
     <div class="row">
         <div class="col-12">
             <h2 class="mb-4">Parent Link Messages</h2>
@@ -32,17 +34,14 @@
             <div class="mb-4">
                 @if (currentUser.Role == "Resident")
                 {
-                    <a href="@Url.Action("Create", "ParentLink")" class="btn btn-primary">
+                    <a href="@Url.Action("Create", "ParentLink")" class="btn btn-primary pl-cta">
                         <i class="fas fa-plus"></i> Send Parent Link Request
                     </a>
                 }
-                else if (currentUser.Role == "Parent")
+                else if (currentUser.Role == "Guardian")
                 {
-                    <a href="@Url.Action("CreateFromParent", "ParentLink")" class="btn btn-primary">
-                        <i class="fas fa-plus"></i> Send Request to Resident
-                    </a>
                     <a href="@Url.Action("Dashboard", "ParentLink")" class="btn btn-success">
-                        <i class="fas fa-tachometer-alt"></i> Parent Dashboard
+                        <i class="fas fa-tachometer-alt"></i> Guardian Dashboard
                     </a>
                 }
             </div>
@@ -50,28 +49,36 @@
             <!-- Pending Requests -->
             @if (pendingRequests != null && pendingRequests.Any())
             {
-                <div class="card mb-4">
-                    <div class="card-header bg-warning text-dark">
-                        <h5 class="mb-0">
-                            <i class="fas fa-clock"></i> Pending Requests (@pendingRequests.Count())
-                        </h5>
+                <div class="pl-section">
+                    <div class="pl-section-header">
+                        <h5 class="pl-section-title"><i class="fas fa-clock"></i> Pending Requests (@pendingRequests.Count())</h5>
+                        <button class="pl-toggle" data-toggle="pl-section" data-target="#pl-pending">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
                     </div>
-                    <div class="card-body">
+                    <div id="pl-pending" class="pl-section-body">
                         @foreach (var request in pendingRequests)
                         {
-                            <div class="border rounded p-3 mb-3">
-                                <div class="row">
+                            <div class="pl-card p-3 mb-3">
+                                <div class="row align-items-center">
                                     <div class="col-md-8">
                                         <h6>
-                                            @if (request.ParentId == currentUser.UserId)
+                                            @if (currentUser.Role == "Guardian" && request.ParentId == currentUser.UserId)
                                             {
-                                                <span class="text-primary">Request to:</span> @request.Child.FullName
+                                                <span class="text-primary">Request from:</span> @request.Child.FullName
                                                 <small class="text-muted">(Resident)</small>
+                                            }
+                                            else if (currentUser.Role == "Resident" && request.ChildId == currentUser.UserId)
+                                            {
+                                                <span class="text-primary">Request to:</span> @request.Parent.FullName
+                                                <small class="text-muted">(Guardian)</small>
                                             }
                                             else
                                             {
-                                                <span class="text-primary">Request from:</span> @request.Parent.FullName
-                                                <small class="text-muted">(Parent)</small>
+                                                <span class="text-primary">Request:</span>
+                                                <span>@request.Parent.FullName</span>
+                                                <span>&#8596;</span>
+                                                <span>@request.Child.FullName</span>
                                             }
                                         </h6>
                                         <p class="mb-1"><strong>Relationship:</strong> @request.RelationshipType</p>
@@ -81,12 +88,9 @@
                                         }
                                         <small class="text-muted">Requested: @request.RequestedAt.ToString("MMM dd, yyyy HH:mm")</small>
                                     </div>
-                                    <div class="col-md-4 text-end">
-                                        @if (request.ParentId == currentUser.UserId)
-                                        {
-                                            <span class="badge bg-info">Sent by you</span>
-                                        }
-                                        else
+                                    <div class="col-md-4">
+                                        <div class="pl-actions">
+                                        @if (currentUser.Role == "Guardian" && request.ParentId == currentUser.UserId)
                                         {
                                             <form method="post" class="d-inline">
                                                 <button type="submit" formaction="@Url.Action("Accept", "ParentLink", new { id = request.ParentLinkId })" 
@@ -99,6 +103,17 @@
                                                 </button>
                                             </form>
                                         }
+                                        @if (currentUser.Role == "Resident" && request.ChildId == currentUser.UserId && request.Status == StayShare.Models.ParentLinkStatus.Pending)
+                                        {
+                                            <form method="post" class="d-inline">
+                                                <span class="pl-badge pl-badge-warning me-2">Pending</span>
+                                                <button type="submit" formaction="@Url.Action("Delete", "ParentLink", new { id = request.ParentLinkId })"
+                                                        class="btn btn-outline-danger btn-sm">
+                                                    <i class="fas fa-trash"></i> Delete
+                                                </button>
+                                            </form>
+                                        }
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -110,16 +125,17 @@
             <!-- Accepted Links -->
             @if (acceptedLinks != null && acceptedLinks.Any())
             {
-                <div class="card mb-4">
-                    <div class="card-header bg-success text-white">
-                        <h5 class="mb-0">
-                            <i class="fas fa-check-circle"></i> Accepted Links (@acceptedLinks.Count())
-                        </h5>
+                <div class="pl-section">
+                    <div class="pl-section-header">
+                        <h5 class="pl-section-title"><i class="fas fa-check-circle"></i> Accepted Links (@acceptedLinks.Count())</h5>
+                        <button class="pl-toggle" data-toggle="pl-section" data-target="#pl-accepted">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
                     </div>
-                    <div class="card-body">
+                    <div id="pl-accepted" class="pl-section-body">
                         @foreach (var link in acceptedLinks)
                         {
-                            <div class="border rounded p-3 mb-3">
+                            <div class="pl-card p-3 mb-3">
                                 <div class="row">
                                     <div class="col-md-8">
                                         <h6>
@@ -138,10 +154,10 @@
                                         <small class="text-muted">Linked: @link.LinkedAt?.ToString("MMM dd, yyyy HH:mm")</small>
                                     </div>
                                     <div class="col-md-4 text-end">
-                                        @if (currentUser.Role == "Parent")
+                                        @if (currentUser.Role == "Guardian")
                                         {
                                             <a href="@Url.Action("ChildDetails", "ParentLink", new { id = link.ParentLinkId })" 
-                                               class="btn btn-info btn-sm">
+                                               class="btn btn-outline-primary btn-sm">
                                                 <i class="fas fa-eye"></i> View Details
                                             </a>
                                         }
@@ -156,16 +172,17 @@
             <!-- Sent Requests -->
             @if (sentRequests != null && sentRequests.Any())
             {
-                <div class="card mb-4">
-                    <div class="card-header bg-info text-white">
-                        <h5 class="mb-0">
-                            <i class="fas fa-paper-plane"></i> Sent Requests (@sentRequests.Count())
-                        </h5>
+                <div class="pl-section">
+                    <div class="pl-section-header">
+                        <h5 class="pl-section-title"><i class="fas fa-paper-plane"></i> Sent Requests (@sentRequests.Count())</h5>
+                        <button class="pl-toggle" data-toggle="pl-section" data-target="#pl-sent">
+                            <i class="fas fa-chevron-up"></i>
+                        </button>
                     </div>
-                    <div class="card-body">
+                    <div id="pl-sent" class="pl-section-body">
                         @foreach (var request in sentRequests)
                         {
-                            <div class="border rounded p-3 mb-3">
+                            <div class="pl-card p-3 mb-3">
                                 <div class="row">
                                     <div class="col-md-8">
                                         <h6>
@@ -191,13 +208,13 @@
                                         @switch (request.Status)
                                         {
                                             case StayShare.Models.ParentLinkStatus.Pending:
-                                                <span class="badge bg-warning">Pending</span>
+                                                <span class="pl-badge pl-badge-warning">Pending</span>
                                                 break;
                                             case StayShare.Models.ParentLinkStatus.Accepted:
-                                                <span class="badge bg-success">Accepted</span>
+                                                <span class="pl-badge pl-badge-success">Accepted</span>
                                                 break;
                                             case StayShare.Models.ParentLinkStatus.Declined:
-                                                <span class="badge bg-danger">Declined</span>
+                                                <span class="pl-badge pl-badge-info">Declined</span>
                                                 break;
                                         }
                                     </div>
@@ -222,15 +239,13 @@
                             <i class="fas fa-plus"></i> Send Your First Request
                         </a>
                     }
-                    else if (currentUser.Role == "Parent")
-                    {
-                        <a href="@Url.Action("CreateFromParent", "ParentLink")" class="btn btn-primary">
-                            <i class="fas fa-plus"></i> Send Your First Request
-                        </a>
-                    }
+                    
                 </div>
             }
         </div>
     </div>
 </div>
 
+@section Scripts {
+    <script src="~/js/parentlink-index.js"></script>
+}

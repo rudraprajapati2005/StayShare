@@ -92,6 +92,11 @@ namespace StayShare.Controllers
                 return RedirectToAction("Index1", "Home");
             }
 
+            if (model.RentPerMonth <= 0)
+            {
+                ModelState.AddModelError("RentPerMonth", "Rent must be greater than 0.");
+            }
+
             if (!ModelState.IsValid)
             {
                 ViewBag.PropertyId = propertyId;
@@ -184,6 +189,11 @@ namespace StayShare.Controllers
             if (id != model.RoomId)
             {
                 return NotFound();
+            }
+
+            if (model.RentPerMonth <= 0)
+            {
+                ModelState.AddModelError("RentPerMonth", "Rent must be greater than 0.");
             }
 
             if (!ModelState.IsValid)

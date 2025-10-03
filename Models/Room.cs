@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
 
 namespace StayShare.Models
 {
@@ -10,6 +11,7 @@ namespace StayShare.Models
         public string RoomType { get; set; } // "Single", "Double", "Triple", etc.
        
         [Column(TypeName = "decimal(10,2)")]
+        [Range(typeof(decimal), "0.01", "79228162514264337593543950335", ErrorMessage = "Rent must be greater than 0.")]
         public decimal RentPerMonth { get; set; }
         public int Capacity { get; set; }
         public string Amenities { get; set; } // Optional amenities for the room
